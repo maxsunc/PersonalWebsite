@@ -1,0 +1,12 @@
+*{
+    color: green;
+
+}
+/* affects every class */
+
+.title{
+    object-fit: cover;
+    width: auto;
+    border: 2px solid red;
+    text-align: center;
+}
