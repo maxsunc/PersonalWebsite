@@ -1,12 +1,92 @@
-*{
-    color: green;
 
+
+:root{
+    /* define variables that can be used */
+    --text-color: black;
+    --link-color: rgb(67, 101, 255);
+    --background-color: white;
 }
-/* affects every class */
 
-.title{
-    object-fit: cover;
-    width: auto;
-    border: 2px solid red;
-    text-align: center;
+/* default stylings */
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html{
+    scroll-behavior: smooth;
+}
+
+body{
+    font-family: 'Poppins', sans-serif;
+    /* must set it to the variable which is the background color */
+    background-color: var(--background-color);
+}
+
+a{
+    color: var(--link-color);
+    /* gets rid of underline */
+    text-decoration: none;
+}
+
+/* NAVBAR */
+nav{
+    /* flex box to split to left and right */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 50px;
+    height: 80px;
+}
+
+nav .left a{
+    color: var(--text-color);
+    font-size: 22px;
+    font-weight: 600;
+}
+
+nav .right a{
+    color: var(--text-color);
+    font-size: 15px;
+    margin: 0 10px;
+}
+
+#mail{
+    border-radius: 10px;
+    padding: 5px 10px;
+    color: white;
+    background-color: rgb(52, 52, 52);
+}
+
+nav .right a span{
+    /* targets the text for the links */
+    margin: 5px;
+}
+
+/* work on changing size of screen */
+
+/* media queries */
+@media (max-width: 600px){
+    /* width goes downward. */
+    /* only applied on 600 px */
+    /* NAVBAR */
+    nav{
+        padding: 0 20px;
+    }
+    nav .right a span{
+        display: none;
+        
+    }
+    nav .right a{
+        font-size: 25px;
+        
+    }
+
+    #mail{
+        border-radius: 10px;
+        padding: 0 0;
+        color:var(--text-color);
+        background-color: transparent;
+    }
 }
