@@ -5,6 +5,13 @@
     --text-color: black;
     --link-color: rgb(67, 101, 255);
     --background-color: white;
+    /* Color pallete: C6B9CD D6D3F0 9C92A3 0B3142 0F5257 */
+    --p1: #C6B9CD;
+    --p2: #D6D3F0;
+    --p3: #9C92A3;
+    --p4: #9C92A3;
+    --p5: #0B3142;
+    --p6: #0F5257;
 }
 
 /* default stylings */
@@ -38,6 +45,7 @@ nav{
     justify-content: space-between;
     padding: 0 50px;
     height: 80px;
+    border: 2px solid var(--p5); 
 }
 
 nav .left a{
@@ -89,4 +97,66 @@ nav .right a span{
         color:var(--text-color);
         background-color: transparent;
     }
+}
+
+/* BANNER */
+/* Color pallete: C6B9CD D6D3F0 9C92A3 0B3142 0F5257 */
+.banner{
+    border: 2px solid var(--p5);
+    height: 700px;
+    background-color: #C6B9CD;
+}
+
+#imageBlock{
+    background-image: url("images/e7.jpg");
+    border-radius: 100px;
+    /* Full height */
+    height: 50vh;
+    margin:75px 150px;
+    /* Center and scale the image nicely */
+    background-position: bottom;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+/* HERO SECTION */
+.hero{
+    display: flex;
+    justify-content: space-between;
+    padding: 0 50px;
+    margin: 50px 0;
+    align-items: center;
+    gap: 40px;
+}
+
+.hero .text h2{
+    font-size: 45px;
+}
+
+.hero .text .links{
+    padding: 10px 0;
+}
+
+.hero .text .links a{
+    /* keeps the inline stuff together on its OWN line */
+    display: inline-block;
+    padding: 5px 10px;
+    border: 2px solid var(--link-color);
+    border-radius: 5px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    transition: 0.1s;
+}
+
+.hero .text .links a:hover{
+    color: var(--text-color);
+    border-color: var(--text-color);
+}
+
+.text{
+    flex: 5;
+}
+
+#pfp{
+    border-radius: 50%;
+    width: 350px;
 }
