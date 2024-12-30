@@ -102,9 +102,10 @@ nav .right a span{
 /* BANNER */
 /* Color pallete: C6B9CD D6D3F0 9C92A3 0B3142 0F5257 */
 .banner{
-    border: 2px solid var(--p5);
+    /* border: 2px solid var(--p5); */
     height: 700px;
     background-color: #C6B9CD;
+    padding:75px 150px;
 }
 
 #imageBlock{
@@ -112,7 +113,6 @@ nav .right a span{
     border-radius: 100px;
     /* Full height */
     height: 50vh;
-    margin:75px 150px;
     /* Center and scale the image nicely */
     background-position: bottom;
     background-repeat: no-repeat;
