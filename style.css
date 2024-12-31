@@ -99,6 +99,28 @@ nav .right a span{
     }
 }
 
+@media (max-width: 800px){
+    /* hero */
+    .hero .text h2{
+        font-size: 35px;
+    }
+}
+
+#pfp{
+    border-radius: 50%;
+    width: 450px;
+}
+
+@media (max-width: 740px){
+    /* hero */
+    .hero{
+        flex-direction: column-reverse;
+    }
+    #pfp{
+        width: 300px;
+    }
+}
+
 /* BANNER */
 /* Color pallete: C6B9CD D6D3F0 9C92A3 0B3142 0F5257 */
 .banner{
@@ -106,6 +128,7 @@ nav .right a span{
     height: 700px;
     background-color: #C6B9CD;
     padding:75px 150px;
+    margin-bottom: 200px;
 }
 
 #imageBlock{
@@ -156,7 +179,40 @@ nav .right a span{
     flex: 5;
 }
 
-#pfp{
-    border-radius: 50%;
-    width: 350px;
+.profile{
+    flex: 2;
+    display: flex;
+    justify-content: right;
+}
+
+#skills{
+    margin-bottom: 300px;
+    text-align: center;
+}
+
+.buttons{
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.talent{
+    display: flex;
+    border: 2px solid red;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 20px;
+    margin: 20px;
+    border-radius: 5px;
+    width: 160px;
+    
+
+}
+
+.buttons .talent img{
+    /* change size of image */
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
 }
