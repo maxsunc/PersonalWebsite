@@ -97,6 +97,14 @@ nav .right a span{
         color:var(--text-color);
         background-color: transparent;
     }
+
+    /* Skills section */
+    .skills .buttons .talent span{
+        font-size: 16px;
+    }
+    .skills{
+        padding: 0px 20px;
+    }
 }
 
 @media (max-width: 800px){
@@ -128,7 +136,7 @@ nav .right a span{
     height: 700px;
     background-color: #C6B9CD;
     padding:75px 150px;
-    margin-bottom: 200px;
+    margin-bottom: 100px;
 }
 
 #imageBlock{
@@ -185,7 +193,7 @@ nav .right a span{
     justify-content: right;
 }
 
-#skills{
+.skills{
     margin-bottom: 300px;
     text-align: center;
 }
@@ -194,7 +202,7 @@ nav .right a span{
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 50px;
 }
 
 .talent{
@@ -206,7 +214,7 @@ nav .right a span{
     margin: 20px;
     border-radius: 5px;
     width: 160px;
-    
+    gap: 10px;
 
 }
 
@@ -215,4 +223,96 @@ nav .right a span{
     width: 30px;
     height: 30px;
     object-fit: contain;
+    
 }
+
+.buttons .talent span{
+    font-size: 18px;
+}
+
+/* Section 3 projects */
+.projects{
+    margin-bottom: 100px;
+}
+
+.projects .row{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+}
+
+.projects .row .project{
+    width: 30%;
+    border: 4px solid var(--p4); 
+    text-align: center;
+}
+
+.projects .header{
+    border: 2px solid red;
+    height: 150px;
+    width: 100%;
+    text-align: center;
+    display:flex;
+    align-items: center;
+    
+}
+
+.projects .header h2{
+    margin: auto;
+}
+
+
+
+
+/* SECTION 4: Contact */
+.contact-section {
+    padding: 0 50px;
+    margin-bottom: 100px;
+  }
+  
+  .contact-section h2 {
+    font-size: 35px;
+  }
+  
+  .contact-section .group {
+    display: flex;
+    gap: 50px;
+  }
+  
+  .contact-section .group .text {
+    flex: 3;
+    margin-top: 20px;
+  }
+  
+  .contact-section .group form {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .contact-section .group form input,
+  .contact-section .group form textarea {
+    font-family: 'Poppins', sans-serif;
+    border: 2px solid var(--link-color);
+    background-color: transparent;
+    padding: 10px;
+    margin-bottom: 15px;
+    outline: none;
+    resize: none;
+  }
+  
+  .contact-section .group form button {
+    font-size: 16px;
+    font-family: 'Poppins', sans-serif;
+    color: #fff;
+    background-color: var(--link-color);
+    border: none;
+    height: 50px;
+    cursor: pointer;
+    transition: .1s;
+  }
+  
+  .contact-section .group form button:hover {
+    filter: brightness(.9);
+  }
