@@ -4,7 +4,7 @@
     /* define variables that can be used */
     --text-color: black;
     --link-color: rgb(67, 101, 255);
-    --background-color: white;
+    --background-color: #eceaf7;
     /* Color pallete: C6B9CD D6D3F0 9C92A3 0B3142 0F5257 */
     --p1: #C6B9CD;
     --p2: #D6D3F0;
@@ -49,6 +49,7 @@ nav{
     padding: 0 50px;
     height: 80px;
     border: 2px solid var(--p5); 
+    z-index: 1000;
 }
 
 nav .left a{
@@ -105,6 +106,7 @@ nav .right a span{
     .skills .buttons .talent span{
         font-size: 16px;
     }
+
     .skills{
         padding: 0px 20px;
     }
@@ -119,6 +121,7 @@ nav .right a span{
 
 #pfp{
     border-radius: 50%;
+    border: 2px solid var(--p5);
     width: 450px;
 }
 
@@ -134,24 +137,45 @@ nav .right a span{
 
 /* BANNER */
 /* Color pallete: C6B9CD D6D3F0 9C92A3 0B3142 0F5257 */
-.banner{
-    /* border: 2px solid var(--p5); */
+.banner {
     height: 700px;
     background-color: #C6B9CD;
-    padding:75px 150px;
-    margin-bottom: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-#imageBlock{
-    background-image: url("images/e7.jpg");
-    border-radius: 100px;
-    /* Full height */
-    height: 50vh;
-    /* Center and scale the image nicely */
-    background-position: bottom;
-    background-repeat: no-repeat;
-    background-size: cover;
+.banner-container {
+    position: relative;
+    width: fit-content;
+    display: inline-block;
 }
+
+.banner img {
+    object-fit: contain;
+    border-radius: 100px;
+    height: 60vh;
+    border: 2px solid var(--p5);
+    display: block;
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    color: #fff;
+    font-size: 100px;
+    font-weight: bold;
+    border-radius: 100px; /* Matches the image's rounded corners */
+}
+
+
 /* HERO SECTION */
 .hero{
     display: flex;
@@ -199,13 +223,14 @@ nav .right a span{
 .skills{
     margin-bottom: 300px;
     text-align: center;
+    
 }
 
 .buttons{
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 50px;
+    gap: 25px;
 }
 
 .talent{
@@ -215,9 +240,9 @@ nav .right a span{
     padding: 10px 20px;
     margin: 20px;
     border-radius: 5px;
-    width: 160px;
+    width: 120px;
     gap: 10px;
-
+    border: 2px solid var(--text-color);
 }
 
 .buttons .talent img{
