@@ -242,7 +242,7 @@ nav .right a span{
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 25px;
+    gap: 20px;
 }
 
 .talent{
@@ -253,7 +253,7 @@ nav .right a span{
     margin: 20px;
     border-radius: 5px;
     width: 120px;
-    gap: 10px;
+    gap: 7px;
     border: 2px solid var(--text-color);
 }
 
