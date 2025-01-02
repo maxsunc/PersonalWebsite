@@ -39,6 +39,9 @@ a{
 
 /* NAVBAR */
 nav{
+    background-color: var(--background-color);
+    position:sticky;
+    top: 0;
     /* flex box to split to left and right */
     display: flex;
     align-items: center;
@@ -207,7 +210,6 @@ nav .right a span{
 
 .talent{
     display: flex;
-    border: 2px solid red;
     justify-content: center;
     align-items: center;
     padding: 10px 20px;
@@ -249,7 +251,6 @@ nav .right a span{
 }
 
 .projects .header{
-    border: 2px solid red;
     height: 150px;
     width: 100%;
     text-align: center;
@@ -258,7 +259,7 @@ nav .right a span{
     
 }
 
-.projects .header h2{
+.projects .header h1{
     margin: auto;
 }
 
