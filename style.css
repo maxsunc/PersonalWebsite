@@ -196,6 +196,7 @@ nav .right a span{
     margin: 50px 0;
     align-items: center;
     gap: 40px;
+    margin-bottom: 100px;
 }
 
 .hero .text h2{
@@ -237,6 +238,9 @@ nav .right a span{
     text-align: center;
     
 }
+.skills h1{
+    font-size: 40px;
+}
 
 .buttons{
     display: flex;
@@ -270,37 +274,84 @@ nav .right a span{
 }
 
 /* Section 3 projects */
-.projects{
+.projects {
     margin-bottom: 100px;
 }
 
-.projects .row{
+.projects h1 {
+    font-size: 40px;
+    color: #333;
+}
+
+.projects .row {
     display: flex;
-    gap: 10px;
-    align-items: center;
+    gap: 20px;
+    align-items: flex-start;
     justify-content: center;
+    flex-wrap: wrap;
 }
 
-.projects .row .project{
+.projects .row .project {
     width: 30%;
-    border: 4px solid var(--p4); 
+    border: 4px solid var(--p4);
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     text-align: center;
+    padding: 20px;
+    transition: transform 0.3s, box-shadow 0.3s;
 }
 
-.projects .header{
+.projects .row .project:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
+
+.projects .row .project img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+
+.projects .row .project h3 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: #555;
+}
+
+.projects .row .project p {
+    font-size: 16px;
+    line-height: 1.5;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.projects .row .project .btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: var(--link-color);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.projects .row .project .btn:hover {
+    background-color: var(--p5);
+}
+
+.projects .header {
     height: 150px;
     width: 100%;
     text-align: center;
-    display:flex;
+    display: flex;
     align-items: center;
-    
 }
 
-.projects .header h1{
+.projects .header h1 {
     margin: auto;
 }
-
-
 
 
 /* SECTION 4: Contact */
