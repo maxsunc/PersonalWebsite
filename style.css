@@ -289,6 +289,7 @@ nav .right a span{
     align-items: flex-start;
     justify-content: center;
     flex-wrap: wrap;
+    margin-bottom: 10px;
 }
 
 .projects .row .project {
@@ -325,6 +326,7 @@ nav .right a span{
     line-height: 1.5;
     color: #666;
     margin-bottom: 15px;
+    height: 100px;
 }
 
 .projects .row .project .btn {
@@ -339,6 +341,16 @@ nav .right a span{
 
 .projects .row .project .btn:hover {
     background-color: var(--p5);
+}
+/* Target github button */
+/* Specific style for the GitHub button */
+.projects .row .project .btn[href*="github"] {
+    background-color: #333; /* GitHub's signature dark background */
+    color: #fff;
+}
+
+.projects .row .project .btn[href*="github"]:hover {
+    background-color: #24292e; /* Slightly lighter shade for hover */
 }
 
 .projects .header {
