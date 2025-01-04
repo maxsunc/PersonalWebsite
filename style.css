@@ -183,6 +183,7 @@ nav .right a span{
 }
 
 .overlay p {
+    
     font-size: 1.2rem;
     margin: 0; /* Removes any default margin */
     color: #ddd; /* Slightly lighter color for distinction */
@@ -201,6 +202,10 @@ nav .right a span{
 
 .hero .text h2{
     font-size: 45px;
+}
+.hero .text p{
+    font-size: 20px;
+    width: 50%
 }
 
 .hero .text .links{
@@ -233,23 +238,28 @@ nav .right a span{
     justify-content: right;
 }
 
-.skills{
+.skills {
     margin-bottom: 300px;
     text-align: center;
-    
 }
-.skills h1{
+
+.skills h1 {
     font-size: 40px;
 }
 
-.buttons{
+.skills .text {
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+.buttons {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
     gap: 20px;
 }
 
-.talent{
+.talent {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -259,18 +269,33 @@ nav .right a span{
     width: 120px;
     gap: 7px;
     border: 2px solid var(--text-color);
+    transition: transform 0.3s, box-shadow 0.3s;
 }
 
-.buttons .talent img{
-    /* change size of image */
+.talent:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.buttons .talent img {
     width: 30px;
     height: 30px;
     object-fit: contain;
-    
 }
 
-.buttons .talent span{
+.buttons .talent span {
     font-size: 18px;
+}
+
+.skills-description {
+    margin-top: 30px;
+    font-size: 18px;
+    line-height: 1.6;
+    color: #555;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
 }
 
 /* Section 3 projects */
