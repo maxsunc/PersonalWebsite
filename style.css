@@ -340,6 +340,7 @@ nav .right a span{
     margin-bottom: 15px;
     border-radius: 4px;
     object-fit: contain;
+    border: 2px solid var(--p5);
 }
 
 .projects .row .project h3 {
@@ -358,6 +359,7 @@ nav .right a span{
 
 .projects .row .project .btn {
     display: inline-block;
+    margin-top: 40px;
     padding: 10px 20px;
     background-color: rgb(174, 143, 2);
     color: #fff;
@@ -378,6 +380,15 @@ nav .right a span{
 
 .projects .row .project .btn[href*="github"]:hover {
     background-color: #707578; /* Slightly lighter shade for hover */
+}
+
+.projects .row .project .btn[href*="devpost"] {
+    background-color: #003a3f; /* GitHub's signature dark background */
+    color: #fff;
+}
+
+.projects .row .project .btn[href*="devpost"]:hover {
+    background-color: #0265a3; /* Slightly lighter shade for hover */
 }
 
 .projects .header {
