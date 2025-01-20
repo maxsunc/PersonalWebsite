@@ -406,7 +406,7 @@ nav .right a span{
 }
 
 
-/* SECTION 4: Contact */
+/* SECTION 4: Contact
 .contact-section {
     padding: 0 50px;
     margin-bottom: 100px;
@@ -456,4 +456,10 @@ nav .right a span{
   
   .contact-section .group form button:hover {
     filter: brightness(.9);
-  }
+  } */
+
+  #dynamic-iframe {
+    display: block; /* Ensures the iframe is treated as a block element */
+    margin: 0 auto; /* Centers it horizontally */
+    
+}
