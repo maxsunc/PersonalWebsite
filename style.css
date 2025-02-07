@@ -404,62 +404,60 @@ nav .right a span{
 .projects .header h1 {
     margin: auto;
 }
-
-
-/* SECTION 4: Contact
-.contact-section {
-    padding: 0 50px;
-    margin-bottom: 100px;
-  }
-  
-  .contact-section h2 {
-    font-size: 35px;
-  }
-  
-  .contact-section .group {
-    display: flex;
-    gap: 50px;
-  }
-  
-  .contact-section .group .text {
-    flex: 3;
-    margin-top: 20px;
-  }
-  
-  .contact-section .group form {
-    flex: 3;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .contact-section .group form input,
-  .contact-section .group form textarea {
-    font-family: 'Poppins', sans-serif;
-    border: 2px solid var(--link-color);
-    background-color: transparent;
-    padding: 10px;
-    margin-bottom: 15px;
-    outline: none;
-    resize: none;
-  }
-  
-  .contact-section .group form button {
-    font-size: 16px;
-    font-family: 'Poppins', sans-serif;
-    color: #fff;
-    background-color: var(--link-color);
-    border: none;
-    height: 50px;
-    cursor: pointer;
-    transition: .1s;
-  }
-  
-  .contact-section .group form button:hover {
-    filter: brightness(.9);
-  } */
-
   #dynamic-iframe {
     display: block; /* Ensures the iframe is treated as a block element */
     margin: 0 auto; /* Centers it horizontally */
     
+}
+/* Responsive Design */
+@media (max-width: 800px) {
+    nav {
+        padding: 0 20px;
+    }
+
+    .hero {
+        flex-direction: column-reverse;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .hero .text h2 {
+        font-size: 32px;
+    }
+
+    .hero .text p {
+        font-size: 18px;
+        max-width: 100%;
+        text-align: center;
+        align-items: center;
+    }
+
+    .projects .row .project {
+        width: 100%; /* Full width on smaller screens */
+    }
+}
+
+@media (max-width: 600px) {
+    nav .right {
+        display: none; /* Hide nav links on small screens */
+    }
+
+    /* Show a hamburger menu */
+    .menu-icon {
+        display: block;
+        font-size: 30px;
+        cursor: pointer;
+    }
+
+    .hero {
+        padding: 10px;
+    }
+
+    .projects .row {
+        flex-direction: column;
+    }
+
+    .projects .row .project {
+        width: 100%;
+    }
 }
