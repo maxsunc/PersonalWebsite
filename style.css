@@ -322,7 +322,7 @@ nav .right a span{
 .projects .row .project {
     margin: auto;
     width: 30%;
-    height: auto;
+    height: 500px; /* Fixed height for consistent sizing */
     border: 4px solid var(--p4);
     border-radius: 8px;
     background-color: #f9f9f9;
@@ -330,6 +330,9 @@ nav .right a span{
     text-align: center;
     padding: 20px;
     transition: transform 0.3s, box-shadow 0.3s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .projects .row .project:hover {
@@ -339,10 +342,10 @@ nav .right a span{
 
 .projects .row .project img {
     max-width: 100%;
-    height: auto;
+    height: 150px; /* Fixed height for consistent image sizing */
     margin-bottom: 15px;
     border-radius: 4px;
-    object-fit: contain;
+    object-fit: cover; /* Changed to cover for better image fitting */
     border: 2px solid var(--p5);
 }
 
@@ -360,8 +363,9 @@ nav .right a span{
     line-height: 1.5;
     color: #666;
     margin-bottom: 15px;
-    height: auto; /* Changed from fixed height to auto */
-    min-height: 80px; /* Minimum height to maintain some consistency */
+    flex-grow: 1; /* Takes up available space */
+    display: flex;
+    align-items: center; /* Centers text vertically */
     word-wrap: break-word;
     overflow-wrap: break-word;
     hyphens: auto;
@@ -369,7 +373,7 @@ nav .right a span{
 
 .projects .row .project .btn {
     display: inline-block;
-    margin-top: 20px; /* Reduced from 40px since height is now auto */
+    margin: 5px; /* Consistent spacing between buttons */
     padding: 10px 20px;
     background-color: rgb(174, 143, 2);
     color: #fff;
@@ -423,12 +427,14 @@ nav .right a span{
 @media (max-width: 1200px) {
     .projects .row .project {
         width: 45%; /* Two columns on medium screens */
+        height: 480px; /* Slightly smaller for medium screens */
     }
 }
 
 @media (max-width: 900px) {
     .projects .row .project {
         width: 60%; /* Slightly wider on smaller screens */
+        height: 450px; /* Adjusted height for smaller screens */
     }
     
     .projects .row .project h3 {
@@ -437,7 +443,10 @@ nav .right a span{
     
     .projects .row .project p {
         font-size: clamp(13px, 3vw, 15px);
-        min-height: 60px;
+    }
+    
+    .projects .row .project img {
+        height: 120px; /* Smaller images on medium screens */
     }
 }
 
@@ -445,6 +454,7 @@ nav .right a span{
     .projects .row .project {
         width: 85%; /* Nearly full width on mobile */
         margin: 10px auto;
+        height: 400px; /* Smaller height for mobile */
     }
     
     .projects .row .project h3 {
@@ -454,7 +464,6 @@ nav .right a span{
     
     .projects .row .project p {
         font-size: clamp(12px, 4vw, 14px);
-        min-height: 50px;
         margin-bottom: 10px;
     }
     
@@ -462,6 +471,10 @@ nav .right a span{
         font-size: clamp(11px, 3vw, 13px);
         padding: 8px 16px;
         margin: 5px;
+    }
+    
+    .projects .row .project img {
+        height: 100px; /* Even smaller images on mobile */
     }
 }
 
