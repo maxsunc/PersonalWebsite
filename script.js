@@ -453,17 +453,35 @@ function playHoverSound() {
 }
 
 function playChillSound() {
-    // Sound for the chill guy button
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
+  try {
+    // Array of MyInstants sound URLs
+    const soundUrls = [
+      'https://www.myinstants.com/media/sounds/tuco-get-out.mp3',
+      'https://www.myinstants.com/media/sounds/asian-meme-huh.mp3',
+      'https://www.myinstants.com/media/sounds/metal-pipe-clang.mp3',
+      'https://www.myinstants.com/media/sounds/scream-meme.mp3',
+      'https://www.myinstants.com/media/sounds/outro-song.mp3',
+      'https://www.myinstants.com/media/sounds/prowler-sound-effect.mp3',
+      'https://www.myinstants.com/media/sounds/re-zero-return-by-death.mp3',
+      'https://www.myinstants.com/media/sounds/yo-phone-lining.mp3',
+      'https://www.myinstants.com/media/sounds/social-credit-music.mp3',
+      'https://www.myinstants.com/media/sounds/china-meme.mp3',
+      'https://www.myinstants.com/media/sounds/chinese-rapping-dog.mp3'
+    ];
     
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
+    // Pick a random sound
+    const randomIndex = Math.floor(Math.random() * soundUrls.length);
+    const selectedSound = soundUrls[randomIndex];
     
-    oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
-    oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
-    oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2); // G5
+    // Create and play the audio
+    const audio = new Audio(selectedSound);
+    audio.volume = 0.5; // Set volume to 50%
+    audio.play().catch(error => {
+      console.log('Audio playback failed:', error);
+    });
     
-    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+  } catch (error) {
+    // Silently fail if audio is not supported
+    console.log('Audio not supported:', error);
+  }
 }
