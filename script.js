@@ -432,6 +432,8 @@ function createFloatingEmoji() {
     setTimeout(() => floatingEmoji.remove(), 3000);
 }
 
+var pastSoundIndex;
+
 // Sound effects (optional, for enhanced UX)
 function playHoverSound() {
     // Create a subtle hover sound using Web Audio API
@@ -457,27 +459,34 @@ function playChillSound() {
         // Array of MyInstants sound URLs
         const soundUrls = [
             'https://www.myinstants.com/media/sounds/tuco-get-out.mp3',
-            'https://www.myinstants.com/media/sounds/asian-meme-huh.mp3',
-            'https://www.myinstants.com/media/sounds/metal-pipe-clang.mp3',
-            'https://www.myinstants.com/media/sounds/scream-meme.mp3',
-            'https://www.myinstants.com/media/sounds/outro-song.mp3',
-            'https://www.myinstants.com/media/sounds/prowler-sound-effect.mp3',
+            'https://www.myinstants.com/media/sounds/gary-meow.mp3',
+            'https://www.myinstants.com/media/sounds/500-cigarettes-shortened.mp3',
+            'https://www.myinstants.com/media/sounds/spongebob-fail.mp3',
+            'https://www.myinstants.com/media/sounds/punch-sound.mp3',
+            'https://www.myinstants.com/media/sounds/bone-crack.mp3',
             'https://www.myinstants.com/media/sounds/re-zero-return-by-death.mp3',
-            'https://www.myinstants.com/media/sounds/yo-phone-lining.mp3',
-            'https://www.myinstants.com/media/sounds/social-credit-music.mp3',
-            'https://www.myinstants.com/media/sounds/china-meme.mp3',
-            'https://www.myinstants.com/media/sounds/chinese-rapping-dog.mp3'
+            'https://www.myinstants.com/media/sounds/tung-tung-sahur.mp3',
+            'https://www.myinstants.com/media/sounds/duck-toy-sound.mp3',
+            'https://www.myinstants.com/media/sounds/apple-pay.mp3',
+            'https://www.myinstants.com/media/sounds/hi-hi-hi-ha-clash-royale.mp3',
+            'https://www.myinstants.com/media/sounds/lego-breaking.mp3',
+            'https://www.myinstants.com/media/sounds/gaster-vanish.mp3',
+            'https://www.myinstants.com/media/sounds/lego-breaking.mp3'
         ];
 
         // Pick a random sound
         const randomIndex = Math.floor(Math.random() * soundUrls.length);
+        while (randomIndex == pastSoundIndex) {
+            randomIndex = Math.floor(Math.random() * soundUrls.length);
+        }
         const selectedSound = soundUrls[randomIndex];
 
         // Create and play the audio
+        pastSoundIndex = randomIndex;
         const audio = new Audio(selectedSound);
         audio.volume = 0.5; // Set volume to 50%
         audio.play().catch(error => {
-            console.log('Audio playback failed:', error);
+            console.log('Audio playback failed for ' + soundUrls[randomIndex], error);
         });
 
     } catch (error) {
