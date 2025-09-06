@@ -400,6 +400,9 @@ section {
     gap: var(--spacing-xl);
     max-width: 900px;
     margin: 0 auto;
+    /* make elements centered*/
+    justify-content: center;
+
 }
 
 .skill-card {
@@ -906,6 +909,7 @@ section {
     .skills-grid {
         grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
         gap: var(--spacing-lg);
+
     }
 
     .project-card {

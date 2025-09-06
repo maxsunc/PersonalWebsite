@@ -231,15 +231,33 @@ function initSkillCardInteractions() {
 }
 
 function showSkillTooltip(card, skill) {
-    // Create tooltip
-    const tooltip = document.createElement('div');
-    tooltip.className = 'skill-tooltip';
-    tooltip.innerHTML = `
-        <div class="tooltip-content">
-            <h4>${skill}</h4>
-            <p>${getSkillDescription(skill)}</p>
-        </div>
-    `;
+    // // Create tooltip
+    // const tooltip = document.createElement('div');
+    // tooltip.className = 'skill-tooltip';
+    // tooltip.innerHTML = `
+    //     <div class="tooltip-content">
+    //         <h4>${skill}</h4>
+    //         <p>${getSkillDescription(skill)}</p>
+    //     </div>
+    // `;
+    // // ...existing code...
+    // // Style tooltip
+    // tooltip.style.cssText = `
+    //     position: absolute;
+    //     background: var(--primary-color); /* More vibrant background */
+    //     color: #fff; /* White text */
+    //     padding: 1rem;
+    //     border-radius: 8px;
+    //     font-size: 0.95rem;
+    //     max-width: 250px;
+    //     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    //     z-index: 1000;
+    //     opacity: 0;
+    //     transform: translateY(10px);
+    //     transition: all 0.3s ease;
+    //     border: 2px solid var(--accent-color); /* Optional: accent border */
+    // `;
+    // ...existing code...
 
     // Style tooltip
     tooltip.style.cssText = `
