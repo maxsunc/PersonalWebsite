@@ -2,7 +2,7 @@ export const personal = {
   name: 'Max Sun',
   title: 'Computer Engineering @ UWaterloo',
   description:
-    'I build games, web apps, and love exploring new technologies. Previously interned at Exo-Insights working on VR/WebGL solutions for the Canadian Nuclear Safety Commission.',
+    'Recently, I really like building small things that make my life easier :). Currently interning at Shopify on retail Point of Sale (POS) team.',
   email: 'm43sun@uwaterloo.ca',
   profileImage: '/images/download.png',
   social: {
