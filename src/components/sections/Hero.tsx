@@ -2,6 +2,7 @@
 
 import { Github, Linkedin, Code, Gamepad2, ChevronDown, Terminal } from 'lucide-react';
 import { personal } from '@/data/personal';
+import AsciiBackground from '@/components/effects/AsciiBackground';
 
 const socialLinks = [
   { icon: Github, href: personal.social.github, label: 'GitHub' },
@@ -21,10 +22,11 @@ export default function Hero() {
   return (
     <section
       id="home"
-      className="relative min-h-screen flex items-center bg-[#0F172A]"
+      className="relative min-h-screen flex items-center bg-[#0F172A] overflow-hidden"
     >
+      <AsciiBackground />
       {/* Content */}
-      <div className="w-full max-w-4xl mx-auto px-6 py-24 z-10">
+      <div className="relative w-full max-w-4xl mx-auto px-6 py-24 z-10">
         <div className="flex flex-col gap-6">
           <div className="flex items-center gap-3 text-run-green mb-4">
             <Terminal className="w-5 h-5" />
