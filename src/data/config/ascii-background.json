@@ -3,5 +3,5 @@
   "decayTime": 1000,
   "waveInterval": 9000,
   "radius": 90,
-  "clickWaveSpeed": 3
+  "clickWaveSpeed": 1
 }
