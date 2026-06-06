@@ -1,0 +1,229 @@
+@import "tailwindcss";
+
+/* Developer Portfolio - Code Dark / CLI Theme */
+:root {
+  /* Slate/Terminal dark backgrounds */
+  --space-void: #0F172A; /* slate-900 */
+  --space-dark: #1E293B; /* slate-800 */
+  --space-card: #0F172A; /* no background shift, just border */
+  --space-border: #334155; /* slate-700 */
+
+  /* High Contrast Accents */
+  --nebula-pink: #FAFAFA; /* pure white */
+  --nebula-purple: #FAFAFA; /* pure white */
+  --nebula-violet: #94A3B8; /* muted gray for secondary */
+
+  /* Run Green/Terminal Accent */
+  --run-green: #22C55E;
+
+  /* Text colors */
+  --text-primary: #FAFAFA;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+
+  /* Fonts */
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease;
+}
+
+@theme inline {
+  --color-space-void: var(--space-void);
+  --color-space-dark: var(--space-dark);
+  --color-space-card: var(--space-card);
+  --color-space-border: var(--space-border);
+  --color-nebula-pink: var(--nebula-pink);
+  --color-nebula-purple: var(--nebula-purple);
+  --color-nebula-violet: var(--nebula-violet);
+  --color-run-green: var(--run-green);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+/* Base styles */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--space-void);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* Headings defaults */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-mono);
+}
+
+/* Paragraphs */
+p {
+  font-family: var(--font-sans);
+}
+
+/* Clean Flat Card (formerly glass-card) */
+.glass-card {
+  background: var(--space-void);
+  border: 1px solid var(--space-border);
+  border-radius: 0;
+  transition: all var(--transition-base);
+}
+
+.glass-card:hover {
+  border-color: var(--text-secondary);
+  background: var(--space-dark);
+}
+
+/* Scroll reveal animation */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.scroll-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger children animation */
+.stagger-children > * {
+  opacity: 0;
+  transform: translateY(15px);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.stagger-children.visible > *:nth-child(1) { transition-delay: 0ms; opacity: 1; transform: translateY(0); }
+.stagger-children.visible > *:nth-child(2) { transition-delay: 50ms; opacity: 1; transform: translateY(0); }
+.stagger-children.visible > *:nth-child(3) { transition-delay: 100ms; opacity: 1; transform: translateY(0); }
+.stagger-children.visible > *:nth-child(4) { transition-delay: 150ms; opacity: 1; transform: translateY(0); }
+.stagger-children.visible > *:nth-child(5) { transition-delay: 200ms; opacity: 1; transform: translateY(0); }
+.stagger-children.visible > *:nth-child(6) { transition-delay: 250ms; opacity: 1; transform: translateY(0); }
+.stagger-children.visible > *:nth-child(7) { transition-delay: 300ms; opacity: 1; transform: translateY(0); }
+.stagger-children.visible > *:nth-child(8) { transition-delay: 350ms; opacity: 1; transform: translateY(0); }
+.stagger-children.visible > *:nth-child(9) { transition-delay: 400ms; opacity: 1; transform: translateY(0); }
+
+/* Gradient text (now just pure white/solid) */
+.gradient-text {
+  color: var(--text-primary);
+}
+
+/* Hover lift effect (reduced for brutalism) */
+.hover-lift {
+  transition: transform var(--transition-fast);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+/* Button styles */
+.btn-primary {
+  background: var(--text-primary);
+  color: var(--space-void);
+  padding: 0.5rem 1rem;
+  border-radius: 0;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  transition: all var(--transition-fast);
+  border: 1px solid var(--text-primary);
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 0.5rem 1rem;
+  border-radius: 0;
+  font-weight: 500;
+  font-family: var(--font-mono);
+  transition: all var(--transition-fast);
+  border: 1px solid var(--space-border);
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+}
+
+/* Section styling */
+section {
+  position: relative;
+  z-index: 1;
+}
+
+/* Selection styling */
+::selection {
+  background: var(--text-primary);
+  color: var(--space-void);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--space-void);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--space-border);
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Focus styles */
+*:focus-visible {
+  outline: 2px solid var(--run-green);
+  outline-offset: 2px;
+}
+
+/* Terminal text effect */
+.terminal-prompt::before {
+  content: '>';
+  color: var(--run-green);
+  margin-right: 0.5rem;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  nav {
+    display: none;
+  }
+
+  body {
+    background: white;
+    color: black;
+  }
+}

@@ -1,7 +1,17 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(npm init:*)",
+      "Bash(npm pkg set:*)",
+      "Bash(npx create-next-app@latest:*)",
+      "Bash(xcopy:*)",
+      "Bash(robocopy:*)",
+      "Bash(powershell:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(del:*)",
+      "Bash(git restore:*)"
     ]
   }
 }
