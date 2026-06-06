@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
+import config from '../../data/config/ascii-background.json';
 
 interface AsciiBackgroundProps {
   spinnerType?: 'braille' | 'classic';
@@ -31,11 +32,11 @@ interface ClickWave {
 }
 
 export default function AsciiBackground({
-  spinnerType = 'braille',
-  decayTime = 1000,
-  waveInterval = 9000,
-  radius = 90,
-  clickWaveSpeed = 1.5,
+  spinnerType = config.spinnerType as 'braille' | 'classic',
+  decayTime = config.decayTime,
+  waveInterval = config.waveInterval,
+  radius = config.radius,
+  clickWaveSpeed = config.clickWaveSpeed,
 }: AsciiBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 

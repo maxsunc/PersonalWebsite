@@ -1,0 +1,27 @@
+backend:
+  name: github
+  repo: maxsunc/PersonalWebsite
+  branch: main
+
+# We can specify local_backend for testing
+local_backend: true
+
+media_folder: "public/images"
+public_folder: "/images"
+
+collections:
+  - name: "config"
+    label: "Configuration"
+    delete: false
+    editor:
+      preview: false
+    files:
+      - file: "src/data/config/ascii-background.json"
+        label: "Ascii Background Settings"
+        name: "ascii-background"
+        fields:
+          - {label: "Spinner Type", name: "spinnerType", widget: "select", options: ["braille", "classic"], default: "braille"}
+          - {label: "Decay Time (ms)", name: "decayTime", widget: "number", value_type: "int", default: 1000}
+          - {label: "Wave Interval (ms)", name: "waveInterval", widget: "number", value_type: "int", default: 9000}
+          - {label: "Radius", name: "radius", widget: "number", value_type: "int", default: 90}
+          - {label: "Click Wave Speed", name: "clickWaveSpeed", widget: "number", value_type: "float", default: 1.5}
