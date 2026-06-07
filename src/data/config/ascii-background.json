@@ -1,7 +1,7 @@
 {
   "spinnerType": "braille",
   "decayTime": 1000,
-  "waveInterval": 1500,
+  "waveInterval": 2500,
   "radius": 10,
   "clickWaveSpeed": 1
 }
