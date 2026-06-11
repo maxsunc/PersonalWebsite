@@ -37,14 +37,19 @@ export default function Contact() {
             </p>
 
             <div className="space-y-4 text-lg">
-              <div className="flex items-center gap-3">
-                <span className="text-run-green">const</span> <span className="text-white">email</span> = 
-                <a
-                  href={`mailto:${personal.email}`}
-                  className="text-slate-300 hover:text-white transition-colors duration-200 underline decoration-slate-700 hover:decoration-run-green ml-2"
-                >
-                  '{personal.email}'
-                </a>;
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <div>
+                  <span className="text-run-green">const</span> <span className="text-white">email</span> = 
+                </div>
+                <div className="flex items-center">
+                  <a
+                    href={`mailto:${personal.email}`}
+                    className="text-slate-300 hover:text-white transition-colors duration-200 underline decoration-slate-700 hover:decoration-run-green break-all"
+                  >
+                    '{personal.email}'
+                  </a>
+                  <span className="text-white">;</span>
+                </div>
               </div>
 
               <div className="flex items-start gap-3 flex-wrap">

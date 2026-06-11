@@ -28,9 +28,9 @@ export default function Hero() {
       {/* Content */}
       <div className="relative w-full max-w-4xl mx-auto px-6 py-24 z-10">
         <div className="flex flex-col gap-6">
-          <div className="flex items-center gap-3 text-run-green mb-4">
-            <Terminal className="w-5 h-5" />
-            <span className="font-mono text-sm opacity-80">guest@maxsun.ca:~$ ./whoami.sh</span>
+          <div className="flex items-start sm:items-center gap-3 text-run-green mb-4">
+            <Terminal className="w-5 h-5 shrink-0 mt-0.5 sm:mt-0" />
+            <span className="font-mono text-sm opacity-80 break-all sm:break-normal">guest@maxsun.ca:~$ ./whoami.sh</span>
           </div>
           
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white">
