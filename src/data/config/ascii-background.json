@@ -1,5 +1,5 @@
 {
-  "spinnerType": "braille",
+  "spinnerType": "classic",
   "decayTime": 1000,
   "waveInterval": 2500,
   "radius": 10,
