@@ -8,6 +8,15 @@ export interface Experience {
 
 export const experiences: Experience[] = [
   {
+    title: 'Incoming Software Engineering Intern',
+    company: 'Rippling',
+    period: 'January 2027 - April 2027',
+    technologies: 'Data Cloud',
+    description: [
+      'Incoming software engineering intern on the Data Cloud team.'
+    ],
+  },
+  {
     title: 'Software Engineer Intern',
     company: 'Shopify',
     period: 'May 2026 - August 2026',
@@ -34,11 +43,11 @@ export const experiences: Experience[] = [
     title: 'Software Developer Intern',
     company: 'Exo-Insights',
     period: 'May 2025 - August 2025',
-    technologies: 'Android Studio, Java/Kotlin',
+    technologies: 'Unity, C#, Python, WebGL, REST/HTTP, Android',
     description: [
-      'Engineered a robust Android SDK (Java/Kotlin) to ingest and process high-frequency (25Hz) gaze-tracking telemetry from smart glasses, with 99.9% data upload reliability via RESTful APIs across 30+ edge devices.',
-      'Developed high-performance Android UI components for real-time biometric visualization (heart-rate and gaze tracking), optimizing internal QA testing lifecycles and reducing debugging overhead by 30%.',
-      'Streamlined sensor-to-cloud data ingestion by integrating custom Bluetooth SDKs and REST APIs into the core pipeline, significantly accelerating data availability by cutting latency by 40%.'
+      'Built a custom WebGL performance profiler that broke a 2-month production bottleneck and became standard tooling across all WebGL projects, improving performance by 44% on average.',
+      'Refactored the cross-platform (Android) file-loading architecture, cutting load times by 40%.',
+      'Created file-upload and asset-management systems in Unity (C#) backed by a Python service layer for a digital twin VR/WebGL training platform used by the Canadian Nuclear Safety Commission.'
     ],
   }
 ];
