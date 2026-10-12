@@ -41,10 +41,6 @@ export default function Hero() {
             <span className="text-run-green">&gt;</span> {personal.title}
           </p>
 
-          <p className="text-base md:text-lg text-slate-300 max-w-2xl font-sans mt-4 border-l-2 border-slate-700 pl-4 py-2 bg-slate-800/30">
-            {personal.description}
-          </p>
-
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 mt-8">
             <button

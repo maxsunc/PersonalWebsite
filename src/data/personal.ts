@@ -1,8 +1,6 @@
 export const personal = {
   name: 'Max Sun',
   title: 'Computer Engineering @ UWaterloo',
-  description:
-    'Recently, I really like building small things that make my life easier :).',
   email: 'm43sun@uwaterloo.ca',
   profileImage: '/images/download.png',
   social: {
