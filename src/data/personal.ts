@@ -1,10 +1,12 @@
+import { github } from '@/data/github';
+
 export const personal = {
   name: 'Max Sun',
   title: 'Computer Engineering @ UWaterloo',
   email: 'm43sun@uwaterloo.ca',
   profileImage: '/images/download.png',
   social: {
-    github: 'https://github.com/maxsunc',
+    github: `https://github.com/${github.username}`,
     linkedin: 'https://www.linkedin.com/in/max-sun1/',
     devpost: 'https://devpost.com/sunm0673',
     itchio: 'https://ratweeb.itch.io/',

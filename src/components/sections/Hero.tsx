@@ -44,11 +44,11 @@ export default function Hero() {
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 mt-8">
             <button
-              onClick={() => scrollToSection('projects')}
+              onClick={() => scrollToSection('github')}
               className="btn-primary flex items-center justify-center gap-2"
             >
               <Terminal className="w-4 h-4" />
-              cd ./projects
+              cd ./github
             </button>
             <button
               onClick={() => scrollToSection('experience')}
@@ -78,9 +78,9 @@ export default function Hero() {
 
       {/* Scroll indicator */}
       <button
-        onClick={() => scrollToSection('about')}
+        onClick={() => scrollToSection('github')}
         className="absolute bottom-8 left-6 text-slate-500 hover:text-white transition-colors cursor-pointer flex items-center gap-2 font-mono text-sm"
-        aria-label="Scroll to About section"
+        aria-label="Scroll to GitHub section"
       >
         <span>scroll down</span>
         <ChevronDown className="w-4 h-4 animate-bounce" />
