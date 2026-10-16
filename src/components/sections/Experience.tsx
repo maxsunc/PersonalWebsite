@@ -42,14 +42,9 @@ export default function Experience() {
                 </span>
               </div>
 
-              <ul className="text-slate-300 leading-relaxed font-sans space-y-3">
-                {experience.description.map((bullet, i) => (
-                  <li key={i} className="flex items-start gap-3">
-                    <span className="text-run-green font-mono mt-1">&gt;</span>
-                    <span>{bullet}</span>
-                  </li>
-                ))}
-              </ul>
+              <p className="text-slate-300 leading-relaxed font-sans">
+                {experience.description}
+              </p>
             </article>
           ))}
         </div>
