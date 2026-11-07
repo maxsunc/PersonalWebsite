@@ -151,14 +151,10 @@ export default function GitHub() {
             </a>
 
             <p className="mt-4 text-sm leading-relaxed text-slate-300">
-              {repository.data?.description || currentRepository.description}
+              {repository.data?.description || (repository.status === 'loading'
+                ? 'Loading repository details from GitHub…'
+                : 'Visit the repository on GitHub to learn more.')}
             </p>
-
-            {currentRepository.note && (
-              <p className="mt-4 border-l-2 border-run-green pl-3 text-sm leading-relaxed text-slate-400">
-                {currentRepository.note}
-              </p>
-            )}
 
             <div className="my-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-300">
               {repository.data?.language && (

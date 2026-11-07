@@ -13,15 +13,20 @@ Run `npm run build` to generate the static website in `out/`.
 
 ## GitHub section
 
-Edit `src/data/github.ts` to change the GitHub username or the repository shown
-under **I'm currently working on**. Set the repository's `owner`, `name`, and
-fallback `description`; optionally add a personal `note`.
+To change **I'm currently working on**, open `/admin/` → **Configuration** →
+**Currently Working On**, paste a public GitHub repository link into
+**Repository URL**, and publish. Once deployment finishes, the card uses the new
+repository and loads its description, language, stars, and activity automatically.
+Only the link is required; there is no need to enter the repository details.
+
+The URL is stored in `src/data/config/current-repository.json` and can also be
+edited directly. Edit `src/data/github.ts` to change the profile's GitHub username.
 
 The profile and repository load independently from GitHub's public API in the
 visitor's browser. Successful responses are cached locally for five minutes.
 No server or GitHub token is required, and no API request runs during the build.
-If GitHub is unavailable or rate-limited, saved data or the configured fallback
-content is shown and both GitHub links remain available.
+If GitHub is unavailable or rate-limited, cached data or a generic fallback
+message is shown and both GitHub links remain available.
 
 The last-pushed date is repository-wide. Its branch is resolved from matching
 public push or branch-creation events, not the repository's default branch.

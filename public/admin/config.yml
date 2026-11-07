@@ -14,6 +14,15 @@ collections:
     editor:
       preview: false
     files:
+      - file: "src/data/config/current-repository.json"
+        label: "Currently Working On"
+        name: "current-repository"
+        fields:
+          - label: "Repository URL"
+            name: "repositoryUrl"
+            widget: "string"
+            hint: "Paste a public GitHub repository link, e.g. https://github.com/owner/repo. Details load automatically after publishing and deployment."
+            pattern: ['^https://github\.com/[A-Za-z0-9-]+/(?!\.{1,2}/?$|\.git/?$)[A-Za-z0-9_.-]+/?$', "Enter a GitHub repository URL: https://github.com/owner/repo"]
       - file: "src/data/config/ascii-background.json"
         label: "Ascii Background Settings"
         name: "ascii-background"

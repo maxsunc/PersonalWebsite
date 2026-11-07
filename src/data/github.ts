@@ -1,12 +1,18 @@
+import currentRepositoryConfig from '@/data/config/current-repository.json';
+
+// Keep this in sync with the Repository URL validation in public/admin/config.yml.
+const repositoryMatch = /^https:\/\/github\.com\/([A-Za-z0-9-]+)\/((?!\.{1,2}\/?$|\.git\/?$)[A-Za-z0-9_.-]+)\/?$/.exec(
+  currentRepositoryConfig.repositoryUrl.trim(),
+);
+
+if (!repositoryMatch) {
+  throw new Error('Current repository must be a GitHub repository URL (https://github.com/owner/repo).');
+}
+
 export const github = {
   username: 'maxsunc',
-  // Change this entry to feature a different repository. The description is also
-  // shown while GitHub loads or if its API is unavailable. The note is optional.
   currentRepository: {
-    owner: 'maxsunc',
-    name: 'libresprite-ai-mcp',
-    description:
-      'Source alpha: visible, undoable AI sprite editing through a local MCP bridge for LibreSprite.',
-    note: '',
+    owner: repositoryMatch[1],
+    name: repositoryMatch[2].replace(/\.git$/, ''),
   },
 };
