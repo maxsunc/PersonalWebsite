@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import AsciiPortrait from "@/components/AsciiPortrait";
 import { ArrowDown } from "lucide-react";
 import { useEffect, useRef, type MouseEvent } from "react";
 
@@ -100,14 +100,8 @@ export default function LandingStory({ links }: { links: LandingLink[] }) {
               this <em>man?</em>
             </span>
           </h1>
-          <div className="landing-photo">
-            <Image
-              src="/images/pfp2.png"
-              alt="Max Sun outdoors."
-              fill
-              priority
-              sizes="(max-width: 760px) 48vw, 440px"
-            />
+          <div className="landing-portrait">
+            <AsciiPortrait />
           </div>
         </div>
         <nav
