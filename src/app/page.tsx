@@ -1,19 +1,5 @@
-import Navigation from '@/components/layout/Navigation';
-import Hero from '@/components/sections/Hero';
-import GitHub from '@/components/sections/GitHub';
-import Experience from '@/components/sections/Experience';
-import Contact from '@/components/sections/Contact';
+import Portfolio from "@/components/Portfolio";
 
 export default function Home() {
-  return (
-    <>
-      <Navigation />
-      <main>
-        <Hero />
-        <GitHub />
-        <Experience />
-        <Contact />
-      </main>
-    </>
-  );
+  return <Portfolio />;
 }

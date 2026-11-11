@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Anton, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -14,14 +14,30 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+const anton = Anton({
+  variable: "--font-display",
+  weight: "400",
+  subsets: ["latin"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Max Sun - Portfolio",
-  description: "Computer Engineering student at University of Waterloo. Building games, web apps, and exploring new technologies.",
-  keywords: ["Max Sun", "portfolio", "software engineer", "game developer", "UWaterloo", "computer engineering"],
+  description:
+    "Computer Engineering student at University of Waterloo. Building games, web apps, and exploring new technologies.",
+  keywords: [
+    "Max Sun",
+    "portfolio",
+    "software engineer",
+    "game developer",
+    "UWaterloo",
+    "computer engineering",
+  ],
   authors: [{ name: "Max Sun" }],
   openGraph: {
     title: "Max Sun - Portfolio",
-    description: "Computer Engineering student at University of Waterloo. Building games, web apps, and exploring new technologies.",
+    description:
+      "Computer Engineering student at University of Waterloo. Building games, web apps, and exploring new technologies.",
     url: "https://maxsun.ca",
     siteName: "Max Sun",
     locale: "en_US",
@@ -30,7 +46,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Max Sun - Portfolio",
-    description: "Computer Engineering student at University of Waterloo. Building games, web apps, and exploring new technologies.",
+    description:
+      "Computer Engineering student at University of Waterloo. Building games, web apps, and exploring new technologies.",
   },
   icons: {
     icon: "/images/favicon.png",
@@ -43,9 +60,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="scroll-smooth overflow-x-hidden">
+    <html lang="en">
       <body
-        className={`${inter.variable} ${jetbrainsMono.variable} font-mono antialiased bg-[#0F172A] text-[#FAFAFA] overflow-x-hidden`}
+        className={`${inter.variable} ${jetbrainsMono.variable} ${anton.variable} antialiased`}
       >
         {children}
       </body>
