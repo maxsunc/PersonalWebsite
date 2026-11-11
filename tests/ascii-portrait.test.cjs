@@ -16,7 +16,15 @@ const compiled = ts.transpileModule(source, {
 }).outputText;
 const exportsForTest = {};
 vm.runInNewContext(compiled, { exports: exportsForTest });
-const { ASCII_RAMP, asciiGlyph, portraitNoise, portraitCell } = exportsForTest;
+const {
+  ASCII_RAMP,
+  CRT_REFRESH_SECONDS,
+  asciiGlyph,
+  phosphorWeight,
+  portraitNoise,
+  portraitCell,
+  portraitRefresh,
+} = exportsForTest;
 const portrait = JSON.parse(
   fs.readFileSync(
     path.join(__dirname, "../src/data/ascii-portrait.json"),
@@ -79,4 +87,51 @@ test("animated cells drift gently while preserving brightness and glyph bounds",
     assert.ok(ASCII_RAMP.includes(cell.glyph));
   }
   assert.equal(first.alpha, later.alpha);
+});
+
+test("refresh band travels upward and wraps outside the visible frame", () => {
+  const peakTime = (row) => ((1.16 - row) / 1.32) * CRT_REFRESH_SECONDS;
+  assert.ok(peakTime(0.75) < peakTime(0.25));
+  assert.ok(portraitRefresh(0.75, peakTime(0.75), true) > 0.99);
+  assert.ok(portraitRefresh(0.25, peakTime(0.25), true) > 0.99);
+  assert.equal(portraitRefresh(0.25, peakTime(0.75), true), 0);
+  for (let step = 0; step <= 100; step++) {
+    const row = step / 100;
+    assert.equal(portraitRefresh(row, 0, true), 0);
+    assert.equal(portraitRefresh(row, CRT_REFRESH_SECONDS - 0.001, true), 0);
+    assert.equal(portraitRefresh(row, CRT_REFRESH_SECONDS, true), 0);
+    assert.equal(portraitRefresh(row, peakTime(row), false), 0);
+    const strength = portraitRefresh(row, 4, true);
+    assert.ok(strength >= 0 && strength <= 1);
+  }
+});
+
+test("refresh gently brightens glyphs but never affects a still portrait", () => {
+  for (let step = 0; step <= 15; step++) {
+    const tone = step / 15;
+    const base = portraitCell(tone, 30, 40, 2, true, 0);
+    const refreshed = portraitCell(tone, 30, 40, 2, true, 1);
+    assert.ok(refreshed.alpha >= base.alpha);
+    assert.ok(refreshed.alpha - base.alpha <= 0.065 + Number.EPSILON);
+    assert.ok(refreshed.alpha <= 0.98);
+    assert.ok(ASCII_RAMP.includes(refreshed.glyph));
+    assert.deepEqual(
+      portraitCell(tone, 30, 40, 2, false, 1),
+      portraitCell(tone, 30, 40, 2, false, 0),
+    );
+  }
+});
+
+test("phosphor trails are faint, decay with time, and vanish when still", () => {
+  assert.equal(phosphorWeight(0, true), 0.18);
+  assert.equal(phosphorWeight(-10, true), 0.18);
+  assert.equal(phosphorWeight(63, false), 0);
+  assert.ok(phosphorWeight(63, true) > phosphorWeight(126, true));
+  assert.ok(phosphorWeight(250, true) < 0.002);
+  for (let elapsed = 0; elapsed < 1000; elapsed++) {
+    const weight = phosphorWeight(elapsed, true);
+    assert.ok(weight >= 0 && weight <= 0.18);
+    // History and current glyph weights sum to one: no accumulating glow.
+    assert.equal(weight + (1 - weight), 1);
+  }
 });

@@ -332,6 +332,17 @@ a:focus-visible .rolling-text > span {
   height: 100%;
   visibility: hidden;
 }
+.ascii-portrait::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 2px,
+    #090a0826 2px 3px
+  );
+}
 .ascii-portrait-fallback {
   margin: 0;
   font-family: "Courier New", monospace;

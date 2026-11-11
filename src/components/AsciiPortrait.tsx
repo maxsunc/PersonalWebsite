@@ -3,7 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Pause, Play } from "lucide-react";
 import portrait from "@/data/ascii-portrait.json";
-import { asciiGlyph, portraitCell } from "@/lib/ascii-portrait";
+import {
+  asciiGlyph,
+  phosphorWeight,
+  portraitCell,
+  portraitRefresh,
+} from "@/lib/ascii-portrait";
 
 const tones = portrait.tones.flatMap((row) =>
   Array.from(row, (value) => parseInt(value, 16) / 15),
@@ -44,24 +49,44 @@ export default function AsciiPortrait() {
     let lastFrame = 0;
     let inView = !window.IntersectionObserver;
     const start = performance.now();
+    const history = document.createElement("canvas");
+    const historyContext = history.getContext("2d");
+    let hasHistory = false;
+    let lastDraw = start;
 
     const draw = (timestamp: number, animated: boolean) => {
       if (!width || !height) return;
       const cellWidth = width / portrait.columns;
       const cellHeight = height / portrait.rows;
       const time = (timestamp - start) / 1000;
+      const persistence = phosphorWeight(
+        timestamp - lastDraw,
+        animated && hasHistory,
+      );
       context.clearRect(0, 0, width, height);
+      context.globalCompositeOperation = "source-over";
+      if (persistence > 0) {
+        context.globalAlpha = persistence;
+        context.drawImage(history, 0, 0, width, height);
+        // Weighted addition keeps a still character's brightness stable.
+        context.globalCompositeOperation = "lighter";
+      }
       context.font = `${cellWidth / 0.6}px "Courier New", monospace`;
       context.textAlign = "center";
       context.textBaseline = "middle";
 
       for (let row = 0; row < portrait.rows; row++) {
+        const refresh = portraitRefresh(
+          row / (portrait.rows - 1),
+          time,
+          animated,
+        );
         for (let column = 0; column < portrait.columns; column++) {
           const tone = tones[row * portrait.columns + column];
-          const cell = portraitCell(tone, column, row, time, animated);
+          const cell = portraitCell(tone, column, row, time, animated, refresh);
           if (cell.glyph === " ") continue;
           context.fillStyle = cell.accent ? "#d6f369" : "#e9e8df";
-          context.globalAlpha = cell.alpha;
+          context.globalAlpha = cell.alpha * (1 - persistence);
           context.fillText(
             cell.glyph,
             (column + 0.5 + cell.x) * cellWidth,
@@ -70,6 +95,13 @@ export default function AsciiPortrait() {
         }
       }
       context.globalAlpha = 1;
+      context.globalCompositeOperation = "source-over";
+      if (historyContext) {
+        historyContext.clearRect(0, 0, width, height);
+        if (animated) historyContext.drawImage(canvas, 0, 0, width, height);
+      }
+      hasHistory = animated && historyContext !== null;
+      lastDraw = timestamp;
       root.classList.add("is-rendered");
     };
 
@@ -99,6 +131,10 @@ export default function AsciiPortrait() {
       canvas.width = Math.round(width * scale);
       canvas.height = Math.round(height * scale);
       context.setTransform(scale, 0, 0, scale, 0, 0);
+      history.width = canvas.width;
+      history.height = canvas.height;
+      historyContext?.setTransform(scale, 0, 0, scale, 0, 0);
+      hasHistory = false;
       const animated = !motion.matches && !pausedRef.current;
       draw(animated ? performance.now() : start, animated);
     };
