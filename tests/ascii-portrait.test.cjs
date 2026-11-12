@@ -20,6 +20,9 @@ const {
   ASCII_RAMP,
   CRT_REFRESH_SECONDS,
   asciiGlyph,
+  crtWarp,
+  crtSnow,
+  portraitStartup,
   phosphorWeight,
   portraitNoise,
   portraitCell,
@@ -97,29 +100,99 @@ test("refresh band travels upward and wraps outside the visible frame", () => {
   assert.equal(portraitRefresh(0.25, peakTime(0.75), true), 0);
   for (let step = 0; step <= 100; step++) {
     const row = step / 100;
-    assert.equal(portraitRefresh(row, 0, true), 0);
-    assert.equal(portraitRefresh(row, CRT_REFRESH_SECONDS - 0.001, true), 0);
-    assert.equal(portraitRefresh(row, CRT_REFRESH_SECONDS, true), 0);
+    assert.ok(
+      Math.abs(
+        portraitRefresh(row, 0, true) -
+          portraitRefresh(row, CRT_REFRESH_SECONDS - 0.00001, true),
+      ) < 0.0002,
+    );
+    assert.equal(
+      portraitRefresh(row, CRT_REFRESH_SECONDS, true),
+      portraitRefresh(row, 0, true),
+    );
     assert.equal(portraitRefresh(row, peakTime(row), false), 0);
     const strength = portraitRefresh(row, 4, true);
     assert.ok(strength >= 0 && strength <= 1);
   }
 });
 
-test("refresh gently brightens glyphs but never affects a still portrait", () => {
+test("refresh brightens, densifies, and distorts glyphs but never affects a still portrait", () => {
   for (let step = 0; step <= 15; step++) {
     const tone = step / 15;
     const base = portraitCell(tone, 30, 40, 2, true, 0);
     const refreshed = portraitCell(tone, 30, 40, 2, true, 1);
     assert.ok(refreshed.alpha >= base.alpha);
-    assert.ok(refreshed.alpha - base.alpha <= 0.065 + Number.EPSILON);
+    assert.ok(refreshed.alpha - base.alpha <= 0.12 + Number.EPSILON);
     assert.ok(refreshed.alpha <= 0.98);
-    assert.ok(ASCII_RAMP.includes(refreshed.glyph));
+    assert.ok(
+      ASCII_RAMP.indexOf(refreshed.glyph) >= ASCII_RAMP.indexOf(base.glyph),
+    );
+    assert.notEqual(refreshed.x, base.x);
+    assert.ok(Math.abs(refreshed.x) <= 1.4);
     assert.deepEqual(
       portraitCell(tone, 30, 40, 2, false, 1),
       portraitCell(tone, 30, 40, 2, false, 0),
     );
   }
+});
+
+test("refresh passes are evenly spaced every 2.4 seconds", () => {
+  assert.equal(CRT_REFRESH_SECONDS / 2, 2.4);
+  for (let step = 0; step < 100; step++) {
+    const row = step / 100;
+    const time = step / 17;
+    assert.ok(
+      Math.abs(
+        portraitRefresh(row, time, true) -
+          portraitRefresh(row, time + 2.4, true),
+      ) < 1e-12,
+    );
+  }
+});
+
+test("CRT curvature preserves the center and keeps screen coordinates in bounds", () => {
+  assert.equal(crtWarp(0.5, 0.5).x, 0.5);
+  assert.equal(crtWarp(0.5, 0.5).y, 0.5);
+  assert.ok(crtWarp(0, 0).x > 0);
+  assert.ok(crtWarp(1, 1).x < 1);
+  for (let row = 0; row <= 20; row++) {
+    for (let column = 0; column <= 20; column++) {
+      const point = crtWarp(column / 20, row / 20);
+      assert.ok(point.x >= 0 && point.x <= 1);
+      assert.ok(point.y >= 0 && point.y <= 1);
+    }
+  }
+});
+
+test("startup holds static then smoothly crossfades to the portrait", () => {
+  assert.equal(portraitStartup(0, true), 0);
+  assert.equal(portraitStartup(0.9, true), 0);
+  assert.ok(Math.abs(portraitStartup(1.5, true) - 0.5) < 1e-12);
+  assert.equal(portraitStartup(2.1, true), 1);
+  assert.equal(portraitStartup(10, true), 1);
+  let previous = 0;
+  for (let step = 0; step <= 300; step++) {
+    const blend = portraitStartup(step / 100, true);
+    assert.ok(blend >= previous && blend <= 1);
+    assert.equal(portraitStartup(step / 100, false), 1);
+    previous = blend;
+  }
+});
+
+test("TV snow changes locally without large overall brightness jumps", () => {
+  const means = [0, 0];
+  for (let row = 0; row < 108; row++) {
+    for (let column = 0; column < 144; column++) {
+      for (let frame = 0; frame < 2; frame++) {
+        const level = crtSnow(column, row, frame);
+        assert.ok(Number.isInteger(level) && level >= 28 && level <= 140);
+        assert.equal(level, crtSnow(column, row, frame));
+        means[frame] += level / (144 * 108);
+      }
+    }
+  }
+  assert.notEqual(crtSnow(30, 40, 0), crtSnow(30, 40, 1));
+  assert.ok(Math.abs(means[0] - means[1]) < 2);
 });
 
 test("phosphor trails are faint, decay with time, and vanish when still", () => {

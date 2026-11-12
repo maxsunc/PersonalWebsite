@@ -2,12 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Pause, Play } from "lucide-react";
+import TelevisionSketch from "@/components/TelevisionSketch";
 import portrait from "@/data/ascii-portrait.json";
 import {
   asciiGlyph,
+  crtWarp,
+  crtSnow,
   phosphorWeight,
   portraitCell,
   portraitRefresh,
+  portraitStartup,
 } from "@/lib/ascii-portrait";
 
 const tones = portrait.tones.flatMap((row) =>
@@ -51,20 +55,61 @@ export default function AsciiPortrait() {
     const start = performance.now();
     const history = document.createElement("canvas");
     const historyContext = history.getContext("2d");
+    const stage = root.closest(".landing-stage");
+    const snow = document.createElement("canvas");
+    snow.width = 144;
+    snow.height = 108;
+    const snowContext = snow.getContext("2d");
+    const snowPixels = snowContext?.createImageData(snow.width, snow.height);
     let hasHistory = false;
+    let startupComplete = motion.matches;
     let lastDraw = start;
 
     const draw = (timestamp: number, animated: boolean) => {
       if (!width || !height) return;
-      const cellWidth = width / portrait.columns;
-      const cellHeight = height / portrait.rows;
+      // Preserve the face's proportions inside the TV's inset glass screen.
+      const portraitWidth = Math.min(width, height * 0.8);
+      const portraitHeight = portraitWidth / 0.8;
+      const left = (width - portraitWidth) / 2;
+      const top = (height - portraitHeight) / 2;
+      const cellWidth = portraitWidth / portrait.columns;
       const time = (timestamp - start) / 1000;
+      const picture = portraitStartup(
+        time,
+        animated &&
+          !startupComplete &&
+          !stage?.classList.contains("intro-skipped"),
+      );
+      if (picture === 1) startupComplete = true;
+      const emission = 0.78 + portraitRefresh(0.5, time, animated) * 0.22;
+      root.parentElement?.style.setProperty(
+        "--screen-output",
+        String(emission),
+      );
       const persistence = phosphorWeight(
         timestamp - lastDraw,
-        animated && hasHistory,
+        animated && hasHistory && picture === 1,
       );
       context.clearRect(0, 0, width, height);
       context.globalCompositeOperation = "source-over";
+      if (picture < 1 && snowContext && snowPixels) {
+        const noiseFrame = Math.floor(time * 12);
+        for (let row = 0; row < snow.height; row++) {
+          for (let column = 0; column < snow.width; column++) {
+            const offset = (row * snow.width + column) * 4;
+            const level = crtSnow(column, row, noiseFrame);
+            snowPixels.data[offset] = level;
+            snowPixels.data[offset + 1] = level + 3;
+            snowPixels.data[offset + 2] = level;
+            snowPixels.data[offset + 3] = 255;
+          }
+        }
+        snowContext.putImageData(snowPixels, 0, 0);
+        context.globalAlpha = 1 - picture;
+        context.imageSmoothingEnabled = false;
+        context.drawImage(snow, 0, 0, width, height);
+        context.imageSmoothingEnabled = true;
+      }
       if (persistence > 0) {
         context.globalAlpha = persistence;
         context.drawImage(history, 0, 0, width, height);
@@ -75,7 +120,7 @@ export default function AsciiPortrait() {
       context.textAlign = "center";
       context.textBaseline = "middle";
 
-      for (let row = 0; row < portrait.rows; row++) {
+      for (let row = 0; picture > 0 && row < portrait.rows; row++) {
         const refresh = portraitRefresh(
           row / (portrait.rows - 1),
           time,
@@ -86,11 +131,15 @@ export default function AsciiPortrait() {
           const cell = portraitCell(tone, column, row, time, animated, refresh);
           if (cell.glyph === " ") continue;
           context.fillStyle = cell.accent ? "#d6f369" : "#e9e8df";
-          context.globalAlpha = cell.alpha * (1 - persistence);
+          context.globalAlpha = cell.alpha * picture * (1 - persistence);
+          const position = crtWarp(
+            (column + 0.5 + cell.x) / portrait.columns,
+            (row + 0.5 + cell.y) / portrait.rows,
+          );
           context.fillText(
             cell.glyph,
-            (column + 0.5 + cell.x) * cellWidth,
-            (row + 0.5 + cell.y) * cellHeight,
+            left + position.x * portraitWidth,
+            top + position.y * portraitHeight,
           );
         }
       }
@@ -98,9 +147,10 @@ export default function AsciiPortrait() {
       context.globalCompositeOperation = "source-over";
       if (historyContext) {
         historyContext.clearRect(0, 0, width, height);
-        if (animated) historyContext.drawImage(canvas, 0, 0, width, height);
+        if (animated && picture === 1)
+          historyContext.drawImage(canvas, 0, 0, width, height);
       }
-      hasHistory = animated && historyContext !== null;
+      hasHistory = animated && picture === 1 && historyContext !== null;
       lastDraw = timestamp;
       root.classList.add("is-rendered");
     };
@@ -118,7 +168,7 @@ export default function AsciiPortrait() {
       frame = 0;
       if (inView && !document.hidden && !motion.matches && !pausedRef.current) {
         frame = window.requestAnimationFrame(tick);
-      } else {
+      } else if (motion.matches || pausedRef.current) {
         draw(start, false);
       }
     };
@@ -166,35 +216,39 @@ export default function AsciiPortrait() {
   }, []);
 
   return (
-    <div className="ascii-portrait-shell">
-      <div
-        ref={rootRef}
-        className="ascii-portrait"
-        role="img"
-        aria-label="ASCII portrait of Max Sun"
-      >
-        <canvas ref={canvasRef} aria-hidden="true" />
-        <pre className="ascii-portrait-fallback" aria-hidden="true">
-          {fallback}
-        </pre>
+    <div className="crt-object">
+      <div className="ascii-portrait-shell">
+        <TelevisionSketch />
+        <div
+          ref={rootRef}
+          className="ascii-portrait"
+          role="img"
+          aria-label="ASCII portrait of Max Sun"
+        >
+          <canvas ref={canvasRef} aria-hidden="true" />
+          <pre className="ascii-portrait-fallback" aria-hidden="true">
+            {fallback}
+          </pre>
+        </div>
+        <span className="crt-power-light" aria-hidden="true" />
+        <button
+          type="button"
+          className="ascii-portrait-toggle"
+          onClick={togglePlayback}
+          aria-label={
+            paused ? "Resume portrait animation" : "Pause portrait animation"
+          }
+          title={
+            paused ? "Resume portrait animation" : "Pause portrait animation"
+          }
+        >
+          {paused ? (
+            <Play size={15} aria-hidden="true" />
+          ) : (
+            <Pause size={15} aria-hidden="true" />
+          )}
+        </button>
       </div>
-      <button
-        type="button"
-        className="ascii-portrait-toggle"
-        onClick={togglePlayback}
-        aria-label={
-          paused ? "Resume portrait animation" : "Pause portrait animation"
-        }
-        title={
-          paused ? "Resume portrait animation" : "Pause portrait animation"
-        }
-      >
-        {paused ? (
-          <Play size={15} aria-hidden="true" />
-        ) : (
-          <Pause size={15} aria-hidden="true" />
-        )}
-      </button>
     </div>
   );
 }

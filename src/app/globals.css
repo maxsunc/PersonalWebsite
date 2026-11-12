@@ -263,7 +263,7 @@ a:focus-visible .rolling-text > span {
   z-index: 1;
   left: 50%;
   top: 56%;
-  width: min(34vw, 44svh, 390px);
+  width: min(44vw, 56svh, 460px);
   transform: translate(calc(-50% - var(--reveal) * var(--photo-shift)), -50%);
 }
 .landing-question {
@@ -275,7 +275,7 @@ a:focus-visible .rolling-text > span {
   margin: 0;
   color: var(--ink);
   font-family: var(--font-display), Impact, sans-serif;
-  font-size: clamp(42px, 6vw, 96px);
+  font-size: clamp(38px, 4.8vw, 70px);
   font-weight: 400;
   line-height: 0.98;
   letter-spacing: -0.025em;
@@ -286,7 +286,7 @@ a:focus-visible .rolling-text > span {
 }
 .landing-question > span {
   display: block;
-  animation: wanted-title-enter 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: wanted-title-enter 800ms 2400ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .landing-question > span:first-child {
   margin-bottom: 0.18em;
@@ -294,7 +294,7 @@ a:focus-visible .rolling-text > span {
   letter-spacing: 0.08em;
 }
 .landing-question > span:last-child {
-  animation-delay: 100ms;
+  animation-delay: 2600ms;
 }
 .landing-question em {
   color: var(--accent);
@@ -303,26 +303,105 @@ a:focus-visible .rolling-text > span {
 .landing-portrait {
   position: relative;
   width: 100%;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 5 / 6;
   transform: scale(calc(1 + var(--reveal) * var(--photo-growth)));
 }
-.ascii-portrait-shell {
+.crt-object {
   position: absolute;
   inset: 0;
+  animation: crt-arrive 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.crt-sketch {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.15px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+.crt-sketch path,
+.crt-sketch circle {
+  vector-effect: non-scaling-stroke;
+}
+/* Keep the drawing behind the inset live screen, not over its picture. */
+.crt-sketch {
+  z-index: 0;
+}
+.crt-drawing-fill {
+  fill: #1a1e16;
+  stroke-width: 1.8px;
+}
+.crt-outline {
+  stroke-width: 1.15px;
+}
+.crt-screen-outline {
+  stroke-width: 1.65px;
+}
+.crt-pencil-shading {
+  stroke-width: 0.7px;
+  opacity: 0.48;
+}
+.ascii-portrait-shell {
+  --screen-output: 0.78;
+  position: absolute;
+  inset: 0;
+  isolation: isolate;
+}
+.ascii-portrait-shell::before,
+.ascii-portrait-shell::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  opacity: var(--screen-output);
+  animation: crt-light-on 600ms both;
+}
+.ascii-portrait-shell::before {
+  z-index: -2;
+  inset: -28% -55%;
+  background: radial-gradient(
+    ellipse,
+    #c5ef8529,
+    #92b96a0d 38%,
+    transparent 68%
+  );
+  filter: blur(24px);
+}
+.ascii-portrait-shell::after {
+  z-index: -1;
+  left: -15%;
+  bottom: -3%;
+  width: 130%;
+  height: 13%;
+  background: radial-gradient(
+    ellipse,
+    #d6f36938,
+    #a7c66812 38%,
+    transparent 70%
+  );
+  filter: blur(14px);
 }
 .ascii-portrait {
   position: absolute;
-  inset: 0;
-  container-type: inline-size;
+  z-index: 1;
+  left: 14.8%;
+  top: 32%;
+  width: 57.4%;
+  height: 38.5%;
+  container-type: size;
   color: var(--ink);
   overflow: hidden;
+  border: 2px solid #020502;
+  border-radius: 20% / 17%;
+  background: #071009;
+  box-shadow:
+    0 0 0 3px #0d100b,
+    0 0 22px #b5e58520,
+    inset 0 0 28px #000;
   filter: blur(0.25px);
-  mask-image: radial-gradient(
-    ellipse 80% 80% at 50% 48%,
-    #000 45%,
-    transparent 90%
-  );
-  animation: portrait-materialize 1300ms ease-out both;
 }
 .ascii-portrait canvas {
   position: absolute;
@@ -332,6 +411,26 @@ a:focus-visible .rolling-text > span {
   height: 100%;
   visibility: hidden;
 }
+.ascii-portrait::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      135deg,
+      #f0ffd512,
+      transparent 25%,
+      transparent 72%,
+      #defdb307
+    ),
+    radial-gradient(ellipse at 50% 45%, transparent 45%, #010801b3 100%);
+  box-shadow:
+    inset 1px 2px 2px #e5ffd326,
+    inset -2px -2px 8px #00000099;
+}
 .ascii-portrait::after {
   content: "";
   position: absolute;
@@ -340,14 +439,18 @@ a:focus-visible .rolling-text > span {
   background: repeating-linear-gradient(
     to bottom,
     transparent 0 2px,
-    #090a0826 2px 3px
+    #02090240 2px 3px
   );
 }
 .ascii-portrait-fallback {
+  position: absolute;
+  top: 50%;
+  left: 50%;
   margin: 0;
+  transform: translate(-50%, -50%);
   font-family: "Courier New", monospace;
-  font-size: calc(100cqi / 96 / 0.6);
-  line-height: calc(125cqi / 72);
+  font-size: calc(min(100cqi, 80cqb) / 96 / 0.6);
+  line-height: calc(min(100cqi, 80cqb) * 1.25 / 72);
   letter-spacing: 0;
   white-space: pre;
 }
@@ -357,34 +460,79 @@ a:focus-visible .rolling-text > span {
 .ascii-portrait.is-rendered .ascii-portrait-fallback {
   display: none;
 }
+.crt-power-light {
+  position: absolute;
+  z-index: 3;
+  left: 77%;
+  top: 72%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px #d6f36999;
+  animation: crt-led-on 400ms 150ms both;
+  pointer-events: none;
+}
 .ascii-portrait-toggle {
   position: absolute;
-  right: 0;
-  bottom: 0;
+  z-index: 3;
+  left: 82.4%;
+  top: 59.8%;
+  transform: translate(-50%, -50%);
   display: grid;
   place-items: center;
   width: 44px;
   height: 44px;
   padding: 0;
-  border: 1px solid var(--rule);
-  background: #090a08cc;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
   color: var(--accent);
-  opacity: 0;
   visibility: hidden;
+}
+.ascii-portrait-toggle svg {
+  opacity: 0;
   transition: opacity 180ms ease;
+}
+.ascii-portrait-toggle:hover svg,
+.ascii-portrait-toggle:focus-visible svg {
+  opacity: 1;
+}
+@media (hover: none) {
+  .ascii-portrait-toggle svg {
+    opacity: 0.8;
+  }
 }
 .ascii-portrait-shell:has(.is-rendered) .ascii-portrait-toggle {
   visibility: visible;
 }
-.ascii-portrait-shell:hover .ascii-portrait-toggle,
-.ascii-portrait-toggle:focus-visible {
-  opacity: 1;
+@keyframes crt-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
-@media (hover: none) {
-  .ascii-portrait-toggle {
+@keyframes crt-led-on {
+  0% {
+    opacity: 0;
+  }
+  100% {
     opacity: 1;
   }
 }
+@keyframes crt-light-on {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: var(--screen-output);
+  }
+}
+/* Arrival → TV snow → portrait crossfade → headline → scroll cue. */
 @keyframes wanted-title-enter {
   from {
     opacity: 0;
@@ -393,16 +541,6 @@ a:focus-visible .rolling-text > span {
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-@keyframes portrait-materialize {
-  from {
-    opacity: 0;
-    filter: blur(2px);
-  }
-  to {
-    opacity: 1;
-    filter: blur(0.25px);
   }
 }
 .landing-nav {
@@ -456,6 +594,10 @@ a:focus-visible .rolling-text > span {
   color: var(--accent);
   transform: translateX(-50%);
   opacity: calc(1 - var(--reveal) * 3);
+  visibility: hidden;
+}
+.landing-stage.is-intro-ready:not(.is-scrolling) .landing-scroll {
+  visibility: visible;
 }
 .landing-scroll::before {
   content: "";
@@ -472,13 +614,21 @@ a:focus-visible .rolling-text > span {
 .landing-stage.is-scrolling .landing-scroll {
   visibility: hidden;
 }
+/* Native scrolling can skip the entrance; never hold navigation behind it. */
+.intro-skipped .crt-object,
+.intro-skipped .ascii-portrait-shell::before,
+.intro-skipped .ascii-portrait-shell::after,
+.intro-skipped .crt-power-light,
+.intro-skipped .landing-question > span {
+  animation: none;
+}
 @media (max-width: 760px) {
   .landing-stage {
     --photo-shift: 22vw;
     --photo-growth: 0.08;
   }
   .landing-visual {
-    width: min(48vw, 32svh, 250px);
+    width: min(58vw, 39svh, 300px);
   }
   .landing-nav {
     left: calc(50% + clamp(24px, 4vw, 40px));
@@ -490,6 +640,11 @@ a:focus-visible .rolling-text > span {
 @media (max-width: 760px) {
   .landing-question {
     font-size: clamp(32px, 10vw, 52px);
+  }
+}
+@media (max-height: 500px) and (max-width: 760px) {
+  .landing-question {
+    font-size: clamp(28px, 9svh, 44px);
   }
 }
 @media (max-height: 650px) and (min-width: 761px) {

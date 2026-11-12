@@ -22,6 +22,7 @@ export default function LandingStory({ links }: { links: LandingLink[] }) {
       "(prefers-reduced-motion: reduce)",
     );
     let frame = 0;
+    let introFinished = motionPreference.matches;
 
     const update = () => {
       frame = 0;
@@ -41,6 +42,11 @@ export default function LandingStory({ links }: { links: LandingLink[] }) {
       stage.style.setProperty("--reveal", String(progress));
       stage.classList.toggle("is-revealed", progress >= 0.6);
       stage.classList.toggle("is-scrolling", progress > 0.3);
+      if (scrollProgress > 0.1 || motionPreference.matches) {
+        introFinished = true;
+        stage.classList.add("intro-skipped");
+      }
+      stage.classList.toggle("is-intro-ready", introFinished);
 
       // Hidden links must not receive keyboard focus before they are revealed.
       if (navRef.current) {
@@ -48,8 +54,9 @@ export default function LandingStory({ links }: { links: LandingLink[] }) {
         navRef.current.setAttribute("aria-hidden", String(progress < 0.6));
       }
       if (arrowRef.current) {
-        arrowRef.current.inert = progress > 0.3;
-        arrowRef.current.setAttribute("aria-hidden", String(progress > 0.3));
+        const hidden = !introFinished || progress > 0.3;
+        arrowRef.current.inert = hidden;
+        arrowRef.current.setAttribute("aria-hidden", String(hidden));
       }
       if (focusAfterScroll.current && progress >= 0.98) {
         focusAfterScroll.current = false;
@@ -60,11 +67,17 @@ export default function LandingStory({ links }: { links: LandingLink[] }) {
       if (!frame) frame = window.requestAnimationFrame(update);
     };
 
+    // Match the CSS sequence: TV → screen → face → words → scroll cue.
+    const introTimer = window.setTimeout(() => {
+      introFinished = true;
+      schedule();
+    }, 3000);
     update();
     window.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", schedule);
     motionPreference.addEventListener("change", schedule);
     return () => {
+      window.clearTimeout(introTimer);
       window.cancelAnimationFrame(frame);
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
@@ -126,6 +139,8 @@ export default function LandingStory({ links }: { links: LandingLink[] }) {
           type="button"
           onClick={revealLinks}
           aria-label="Scroll to projects, experience, and contact"
+          aria-hidden="true"
+          inert
         >
           <ArrowDown size={30} strokeWidth={1.6} aria-hidden="true" />
         </button>

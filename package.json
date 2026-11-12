@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:ascii": "node --test tests/ascii-portrait.test.cjs"
+    "test:ascii": "node --test tests/*.test.cjs"
   },
   "dependencies": {
     "@splinetool/react-spline": "^4.1.0",
