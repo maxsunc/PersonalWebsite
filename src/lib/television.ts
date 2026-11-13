@@ -20,6 +20,7 @@ export const TV_CHANNELS = [
   { id: "portfolio", label: "Portfolio" },
   { id: "about", label: "About me" },
   { id: "projects", label: "Projects" },
+  { id: "fnaf", label: "FNAF 1" },
 ] as const;
 export const TV_CONTROLS = [
   { id: "channel-up", label: "Channel up", x: 5.10, y: 2.35, width: 0.78, height: 0.58 },

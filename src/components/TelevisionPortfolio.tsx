@@ -4,6 +4,7 @@ import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 import { useCallback, useRef, useState, type CSSProperties } from "react";
 import TelevisionModel from "@/components/TelevisionModel";
+import FnafChannel from "@/components/FnafChannel";
 import TelevisionNoise from "@/components/TelevisionNoise";
 import TelevisionStatic from "@/components/TelevisionStatic";
 import { useTelevisionStartup } from "@/hooks/useTelevisionStartup";
@@ -42,8 +43,7 @@ export default function TelevisionPortfolio() {
         <div ref={displayRef} className="tv-glass">
           <div className="tv-broadcast" aria-hidden={retuning || phase !== "on"}>
             <div className="tv-picture" inert={retuning || phase !== "on"}>
-              <span className="channel-indicator" aria-hidden="true">CH {String(channel + 1).padStart(2, "0")} · {TV_CHANNELS[channel].label}</span>
-              <main className={`broadcast-main ${channel === 1 ? "about-channel" : channel === 2 ? "projects-channel" : ""}`} id="main">
+              <main className={`broadcast-main ${channel === 1 ? "about-channel" : channel === 2 ? "projects-channel" : channel === 3 ? "game-channel" : ""}`} id="main">
                 {channel === 0 && <>
                   <section className="intro" aria-labelledby="name">
                     <h1 id="name">Max Sun<span>.</span></h1>
@@ -100,15 +100,16 @@ export default function TelevisionPortfolio() {
                     ))}
                   </section>
                 </>}
+                <FnafChannel volume={volume} active={channel === 3 && !screenPaused} />
               </main>
-              <footer className="broadcast-footer">
+              {channel !== 3 && <footer className="broadcast-footer">
                 <nav aria-label="Contact and résumé">
                   <a href="/Max_Sun_Resume.pdf" target="_blank" rel="noopener noreferrer">Résumé<span className="sr-only"> (opens in a new tab)</span><ArrowUpRight aria-hidden="true" /></a>
                   <a href={`mailto:${personal.email}`} aria-label={`Email ${personal.email}`}>Email<ArrowUpRight aria-hidden="true" /></a>
                   <a href={personal.social.github} target="_blank" rel="noopener noreferrer">GitHub<span className="sr-only"> (opens in a new tab)</span><ArrowUpRight aria-hidden="true" /></a>
                   <a href={personal.social.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn<span className="sr-only"> (opens in a new tab)</span><ArrowUpRight aria-hidden="true" /></a>
                 </nav>
-              </footer>
+              </footer>}
             </div>
             <div className="tv-surface" aria-hidden="true">
               <TelevisionNoise paused={screenPaused} />

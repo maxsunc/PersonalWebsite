@@ -67,12 +67,12 @@ function mount({ enabled = true, reduced = false, hidden = false } = {}) {
   };
 }
 
-test("channel + and − cycle circularly through Portfolio, About, Projects in both directions", () => {
+test("channel + and − cycle circularly through Portfolio, About, Projects, FNAF in both directions", () => {
   const tv = mount();
   assert.equal(tv.channel, 0);
-  for (const expected of [1, 2, 0, 1]) { tv.change(1); tv.advance(350); assert.equal(tv.channel, expected); }
-  for (const expected of [0, 2, 1, 0]) { tv.change(-1); tv.advance(350); assert.equal(tv.channel, expected); }
-  assert.equal(layout.TV_CHANNELS.length, 3);
+  for (const expected of [1, 2, 3, 0, 1]) { tv.change(1); tv.advance(350); assert.equal(tv.channel, expected); }
+  for (const expected of [0, 3, 2, 1, 0]) { tv.change(-1); tv.advance(350); assert.equal(tv.channel, expected); }
+  assert.equal(layout.TV_CHANNELS.length, 4);
   tv.cleanup();
 });
 
@@ -110,7 +110,7 @@ test("startup/off ignores channel presses; powering off cancels pending tuning a
 test("reduced motion and hidden tabs switch without snow or deferred timers", () => {
   for (const options of [{ reduced: true }, { hidden: true }]) {
     const tv = mount(options);
-    tv.change(-1); assert.equal(tv.channel, 2); assert.equal(tv.switching, false);
+    tv.change(-1); assert.equal(tv.channel, 3); assert.equal(tv.switching, false);
     assert.equal(tv.timers.size, 0); tv.cleanup();
   }
   for (const event of ["hide", "reduce"]) {

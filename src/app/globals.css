@@ -154,8 +154,12 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
 .broadcast-footer a { display: inline-flex; align-items: center; gap: 0.4cqw; }
 .broadcast-footer a svg { width: 1.1cqw; height: 1.1cqw; }
 
+/* The game keeps its original 16:9 canvas, letterboxed inside the TV glass. */
+.tv-room[data-channel="fnaf"] .tv-picture { padding: 5cqh 3cqw 3cqh; grid-template-rows: minmax(0, 1fr); gap: 0; background: #000; }
+.broadcast-main.game-channel { display: block; height: 100%; }
+.fnaf-frame { display: block; width: 100%; height: 100%; border: 0; background: #000; }
+
 /* Channel layouts stay inside the same fixed glass-local canvas. */
-.channel-indicator { position: absolute; top: 1.7cqh; right: 5cqw; color: var(--accent); font: 1.9cqw var(--font-jetbrains-mono), monospace; letter-spacing: 0.03em; }
 .broadcast-main.about-channel { display: block; }
 .about-content { display: grid; grid-template-columns: min(34cqw, 42cqh) minmax(0, 1fr); gap: 5cqw; align-items: center; height: 100%; }
 .about-photo { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; border-radius: 1.4cqw; filter: saturate(0.75); border: 1px solid var(--rule); }
