@@ -7,6 +7,13 @@ import os
 from mathutils import Vector
 
 ROOT = os.environ.get('MAXSUN_PROJECT_ROOT', os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Regeneration replaces only our generated scene; unrelated scenes stay intact.
+for previous in list(bpy.data.scenes):
+    if previous.name == 'Max Sun - Analog CRT':
+        for obj in list(previous.objects):
+            if len(obj.users_scene) == 1:
+                bpy.data.objects.remove(obj, do_unlink=True)
+        bpy.data.scenes.remove(previous)
 scene = bpy.data.scenes.new('Max Sun - Analog CRT')
 bpy.context.window.scene = scene
 collection = scene.collection
@@ -92,20 +99,26 @@ box('TunerDisplay', (5.56, 3.38, 1.17), (1.76, .65, .12), knob, .035)
 box('TunerGlass', (5.56, 3.38, 1.245), (1.57, .44, .04), glass, .015)
 label('UHF / VHF', 5.56, 3.32, 1.275, .12)
 
-for name, x, y in [('channel-up', 5.10, 2.35), ('channel-down', 6.02, 2.35),
-                    ('volume-up', 5.10, 1.38), ('volume-down', 6.02, 1.38)]:
+for name, x, y in [('channel-up', 5.10, 2.35), ('channel-down', 6.02, 2.35)]:
     box('Socket_' + name, (x, y, 1.15), (.77, .57, .12), edge, .07)
     box('Button_' + name, (x, y, 1.28), (.64, .43, .22), knob, .055)
 label('CHANNEL', 5.56, 2.83, 1.18, .13)
 label('+', 5.10, 2.29, 1.40, .19)
 label('-', 6.02, 2.29, 1.40, .19)
 label('VOLUME', 5.56, 1.86, 1.18, .13)
-label('+', 5.10, 1.32, 1.40, .19)
-label('-', 6.02, 1.32, 1.40, .19)
+box('VolumeBezel', (5.56, 1.38, 1.16), (1.82, .50, .12), edge, .05)
+box('VolumeTrack', (5.56, 1.38, 1.235), (1.62, .16, .06), recess, .035)
+for i in range(7):
+    box('VolumeTick_%s' % i, (4.92 + i * 1.28 / 6, 1.08, 1.20), (.02, .07, .014), ink, .003)
+thumb = box('VolumeThumb', (5.56, 1.38, 1.36), (.24, .44, .24), knob, .035)
+bpy.context.view_layer.update()
+grip = box('VolumeThumbGrip', (5.56, 1.38, 1.49), (.025, .25, .014), ink, .004)
+grip.parent = thumb
+grip.matrix_parent_inverse = thumb.matrix_world.inverted()
 
-box('MenuSocket', (5.56, .37, 1.15), (1.72, .48, .12), edge, .04)
-box('Button_menu', (5.56, .37, 1.28), (1.53, .34, .22), knob, .035)
-label('MENU', 5.56, .31, 1.40, .13)
+box('ViewSocket', (5.56, .37, 1.15), (1.72, .48, .12), edge, .04)
+box('Button_view', (5.56, .37, 1.28), (1.53, .34, .22), knob, .035)
+label('VIEW', 5.56, .31, 1.40, .13)
 
 for i in range(16):
     box('SpeakerSlat_%02d' % i, (5.56, -.28 - i * .118, 1.16), (1.72, .042, .08), front, .013)
@@ -120,6 +133,53 @@ box('LeftFoot', (-5.3, -4.71, -.1), (1.3, .3, 2.1), rubber, .08)
 box('RightFoot', (5.3, -4.71, -.1), (1.3, .3, 2.1), rubber, .08)
 for i in range(14):
     box('TopVent_%02d' % i, (-4.9 + i * .36, 4.605, -.75), (.17, .015, 1.5), recess, .007)
+
+# The rear is now explorable: removable back cover, cooling slots, screws, ports.
+box('RearCover', (0, 0, -2.62), (12.85, 7.95, .18), shell, .18)
+for side in [-1, 1]:
+    for i in range(13):
+        box('RearVent_%s_%02d' % (side, i), (side * 3.05, 2.9 - i * .19, -2.725), (4.65, .075, .045), recess, .025)
+for x in [-5.95, 0, 5.95]:
+    for y in [-3.52, 3.52]:
+        cylinder('RearScrew', x, y, -2.75, .075, .045, edge)
+        box('RearScrewSlot', (x, y, -2.777), (.09, .017, .008), recess, .002)
+box('RearConnectionPanel', (-3.4, -2.5, -2.75), (3.5, 1.15, .10), recess, .07)
+for i in range(3):
+    cylinder('RearAVRing_%s' % i, -4.5 + i * .55, -2.5, -2.84, .135, .10, edge)
+    cylinder('RearAVSocket_%s' % i, -4.5 + i * .55, -2.5, -2.90, .07, .045, recess)
+box('RearPowerSocket', (4.8, -2.8, -2.77), (.85, .55, .15), recess, .04)
+box('RearSerialPlate', (.5, -2.6, -2.75), (3.5, .9, .04), recess, .03)
+rear_label = label('MAX SUN / ANALOG CRT', .5, -2.61, -2.78, .16)
+rear_label.rotation_euler.z += math.pi
+
+# Swivelling telescopic rabbit ears. Separate pivots are interactive in the site.
+for side, base, tip in [
+    ('left', (-1.65, 4.72, -.15), (-3.7, 7.25, -.25)),
+    ('right', (-.55, 4.72, -.15), (1.6, 7.35, -.25)),
+]:
+    cylinder('AntennaSocket_' + side, base[0], base[1] - .05, base[2], .20, .24, recess)
+    pivot = bpy.data.objects.new('Antenna_' + side, None)
+    collection.objects.link(pivot)
+    pivot.location = coords(*base)
+    bpy.context.view_layer.update()
+    start = Vector(coords(*base))
+    finish = Vector(coords(*tip))
+    delta = finish - start
+    for index, (a, b, radius) in enumerate([(0, .38, .040), (.35, .72, .030), (.69, 1, .022)]):
+        p1, p2 = start + delta * a, start + delta * b
+        bpy.ops.mesh.primitive_cylinder_add(vertices=16, radius=radius, depth=(p2-p1).length, location=(p1+p2)/2)
+        rod = bpy.context.object
+        rod.name = 'AntennaRod_' + side + '_' + str(index)
+        rod.rotation_euler = (p2-p1).to_track_quat('Z', 'Y').to_euler()
+        rod.data.materials.append(edge)
+        rod.parent = pivot
+        rod.matrix_parent_inverse = pivot.matrix_world.inverted()
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=16, ring_count=8, radius=.070, location=finish)
+    cap = bpy.context.object
+    cap.name = 'AntennaTip_' + side
+    cap.data.materials.append(edge)
+    cap.parent = pivot
+    cap.matrix_parent_inverse = pivot.matrix_world.inverted()
 
 # Save a useful native Blender scene and export only the model (no camera/lights).
 model_objects = list(scene.objects)
@@ -149,22 +209,25 @@ def area(name, position, energy, size, color):
 area('Large warm softbox', (-5, 7, 9), 1600, 7, (1, .89, .72))
 area('Cool fill', (6, 3, 7), 1000, 6, (.72, .83, 1))
 area('Top rim', (0, 8, -2), 1800, 5, (.8, 1, .75))
-bpy.ops.object.camera_add(location=coords(.4, .2, 21))
+target = Vector(coords(0, 1.2, 0))
+radius, yaw, pitch = 23, .28, .14
+camera_position = coords(math.sin(yaw)*math.cos(pitch)*radius, 1.2 + math.sin(pitch)*radius, math.cos(yaw)*math.cos(pitch)*radius)
+bpy.ops.object.camera_add(location=camera_position)
 camera = bpy.context.object
-camera.rotation_euler = (Vector(coords(0, 0, 0)) - camera.location).to_track_quat('-Z', 'Y').to_euler()
+camera.rotation_euler = (target - camera.location).to_track_quat('-Z', 'Y').to_euler()
 camera.data.type = 'ORTHO'
-camera.data.ortho_scale = 15.5
+camera.data.ortho_scale = 16.2
 scene.camera = camera
 scene.render.engine = 'CYCLES'
 scene.cycles.samples = 32
-scene.render.resolution_x = 1440
-scene.render.resolution_y = 1024
+scene.render.resolution_x = 1620
+scene.render.resolution_y = 1450
 scene.render.resolution_percentage = 100
 bpy.ops.wm.save_as_mainfile(filepath=os.path.join(ROOT, 'assets/blender/retro-tv.blend'))
 if os.environ.get('RENDER_TV_POSTER') == '1':
-    camera.data.ortho_scale = 15.2
-    scene.render.resolution_x = 1520
-    scene.render.resolution_y = 1010
+    camera.data.ortho_scale = 16.2
+    scene.render.resolution_x = 1620
+    scene.render.resolution_y = 1450
     scene.render.film_transparent = True
     scene.render.image_settings.file_format = 'PNG'
     scene.render.filepath = os.path.join(ROOT, 'assets/blender/retro-tv-poster.png')

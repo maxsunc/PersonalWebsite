@@ -35,6 +35,10 @@ next-env.d.ts
 *.swp
 *.swo
 
+# Blender working renders and automatic backups
+assets/blender/*.blend[0-9]*
+assets/blender/retro-tv-poster.png
+
 # OS
 .DS_Store
 Thumbs.db

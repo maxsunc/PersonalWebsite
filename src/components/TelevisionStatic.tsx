@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 
 /** Startup is only analog snow: no captions, logos, progress UI, or controls. */
-export default function TelevisionStatic({ active }: { active: boolean }) {
+export default function TelevisionStatic({ active, abrupt = false }: { active: boolean; abrupt?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -15,10 +15,10 @@ export default function TelevisionStatic({ active }: { active: boolean }) {
     let frame = 0;
     let previous = -Infinity;
     const draw = (time: number) => {
-      if (time - previous >= 1000 / 18) {
+      if (time - previous >= 1000 / (abrupt ? 30 : 18)) {
         previous = time;
         for (let row = 0; row < canvas.height; row++) {
-          const band = Math.sin(row * 0.09 + time * 0.006) * 20;
+          const band = Math.sin(row * 0.09 + time * (abrupt ? 0.022 : 0.006)) * (abrupt ? 44 : 20);
           for (let column = 0; column < canvas.width; column++) {
             const offset = (row * canvas.width + column) * 4;
             const tone = Math.random() * 195 + band;
@@ -42,7 +42,7 @@ export default function TelevisionStatic({ active }: { active: boolean }) {
       cancelAnimationFrame(frame);
       document.removeEventListener("visibilitychange", sync);
     };
-  }, [active]);
+  }, [active, abrupt]);
 
   return <canvas ref={canvasRef} width={320} height={240} aria-hidden="true" />;
 }

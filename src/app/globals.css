@@ -33,16 +33,30 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
 }
 .television-stage {
   position: relative;
-  width: min(96vw, calc((100dvh - 24px) * 1.505), 1700px);
-  aspect-ratio: 15.2 / 10.1;
+  width: min(96vw, 1700px);
+  height: calc(100dvh - 24px);
   isolation: isolate;
   filter: drop-shadow(0 24px 32px #0009);
+  cursor: grab;
+  touch-action: none;
 }
+/* SSR uses approximate poster bounds. Reveal cabinet and screen together only
+   after the renderer has applied its first exact projection (or fallback). */
+.is-loading .television-stage { opacity: 0; pointer-events: none; }
+.television-stage.is-dragging { cursor: grabbing; user-select: none; }
+.is-front-view .television-stage { cursor: default; }
+.television-stage a { cursor: pointer; }
 .television-model, .cabinet-canvas, .cabinet-inputs { position: absolute; inset: 0; width: 100%; height: 100%; }
 .cabinet-poster { object-fit: fill; opacity: 1; }
 .model-loaded .cabinet-poster { opacity: 0; pointer-events: none; }
 .cabinet-canvas { z-index: 1; display: block; }
 .cabinet-inputs { z-index: 4; pointer-events: none; }
+.antenna-inputs { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+.antenna-handle { position: absolute; height: 28px; border-radius: 20px; pointer-events: auto; cursor: grab; touch-action: none; outline: none; }
+.antenna-handle:hover, .antenna-handle:focus-visible { background: #c4df9b12; box-shadow: 0 0 14px #d4e7ae26; }
+.antenna-handle:focus-visible { outline: 1px solid #d4e7ae90; outline-offset: 2px; }
+.antenna-handle:active { cursor: grabbing; }
+.television-model:not(.model-loaded) .antenna-inputs { display: none; }
 .cabinet-button {
   position: absolute;
   transform: translate(-50%, -50%);
@@ -57,6 +71,18 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
 .cabinet-button:active { background: #0002; }
 .cabinet-button-power { border-radius: 50%; }
 .cabinet-button:focus-visible { outline-color: #d4e7ae; outline-offset: 2px; }
+.cabinet-button-view[aria-pressed="true"] { background: #c4df9b16; box-shadow: 0 0 12px #c4df9b26; }
+.cabinet-button:disabled { cursor: default; }
+/* The real 3D track/thumb remain visible; the native range supplies input,
+   keyboard semantics, and a larger transparent grab area over that geometry. */
+.cabinet-volume { position: absolute; left: 0; top: 0; transform-origin: 0 0; appearance: none; -webkit-appearance: none; margin: 0; padding: 0; border: 0; background: transparent; color: transparent; pointer-events: auto; cursor: ew-resize; touch-action: none; }
+.cabinet-volume::-webkit-slider-runnable-track { height: 52px; border: 0; background: transparent; }
+.cabinet-volume::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; width: 44px; height: 52px; border: 0; background: transparent; }
+.cabinet-volume::-moz-range-track, .cabinet-volume::-moz-range-progress { border: 0; background: transparent; }
+.cabinet-volume::-moz-range-thumb { width: 44px; height: 52px; border: 0; background: transparent; }
+.cabinet-volume:hover { background: #c4df9b0b; }
+.cabinet-volume:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.cabinet-volume:disabled { cursor: default; }
 /* Approximate SSR/poster placement; the renderer projects the exact glass plane. */
 .tv-glass {
   position: absolute;
@@ -71,9 +97,24 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
   isolation: isolate;
   overflow: hidden;
   border-radius: 3% / 4.5%;
-  background: var(--paper);
+  background: #050805;
   box-shadow: inset 0 0 35px #0008, 0 0 24px #b6d18b0b;
 }
+.tv-broadcast { position: absolute; inset: 0; width: 100%; height: 100%; background: var(--paper); transform-origin: 50% 50%; }
+.crt-flash { position: absolute; inset: 0; z-index: 8; background: #edfbdc; opacity: 0; pointer-events: none; }
+/* Snap between picture, line, dot, and black rather than easing a squeeze. */
+.tv-room[data-power="turning-off"] .tv-broadcast { animation: crt-power-off var(--power-duration) steps(1, end) both; pointer-events: none; }
+.tv-room[data-power="turning-off"] .crt-flash { animation: crt-phosphor-flash var(--power-duration) steps(1, end) both; }
+.tv-room[data-power="off"] .tv-broadcast { opacity: 0; visibility: hidden; pointer-events: none; }
+/* Power-on reuses the full-frame intro static, never the shutdown transform. */
+.tv-room[data-power="turning-on"] .tv-broadcast { animation: none; transform: none; opacity: 1; visibility: visible; }
+@keyframes crt-power-off {
+  0% { transform: scale(1, 1); filter: brightness(1); opacity: 1; }
+  10% { transform: scale(1, 0.006); filter: brightness(1.8); opacity: 1; }
+  65% { transform: scale(0.014, 0.006); filter: brightness(1.3); opacity: 1; }
+  100% { transform: scale(0, 0); filter: brightness(1); opacity: 0; }
+}
+@keyframes crt-phosphor-flash { 0% { opacity: 0; } 10%, 65% { opacity: 0.95; } 100% { opacity: 0; } }
 .tv-picture {
   height: 100%;
   width: 100%;
@@ -111,8 +152,6 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
 .broadcast-footer nav { display: flex; align-items: center; gap: 3cqw; font: 1.15cqw var(--font-jetbrains-mono), monospace; }
 .broadcast-footer a { display: inline-flex; align-items: center; gap: 0.4cqw; }
 .broadcast-footer a svg { width: 1.1cqw; height: 1.1cqw; }
-.effects-button { display: grid; place-items: center; padding: 0.6cqw; border: 0; border-radius: 3px; background: transparent; color: var(--muted); }
-.effects-button svg { width: 1.4cqw; height: 1.4cqw; }
 
 /* The ongoing analog texture never displaces the actual text or captures input. */
 .tv-surface { position: absolute; inset: 0; z-index: 2; overflow: hidden; pointer-events: none; border-radius: inherit; background: repeating-linear-gradient(0deg, #00000024 0 1px, transparent 1px 3px); box-shadow: inset 0 0 60px #02060270, inset 0 0 8px #0008; }
@@ -121,13 +160,17 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
 .tv-pixel-grid { position: absolute; inset: 0; opacity: 0.32; background: repeating-linear-gradient(90deg, #db655b10 0 1px, #82c97510 1px 2px, #7d9fd915 2px 3px); }
 .tv-tracking { position: absolute; inset: -12px 0; background: repeating-linear-gradient(0deg, transparent 0 48px, #c4df9b09 49px, #00000020 50px, transparent 52px 96px); animation: tracking-drift 9s linear infinite; }
 .tv-scanbeam { position: absolute; left: 0; right: 0; top: -30%; height: 25%; background: linear-gradient(transparent, #d9efc106 55%, #d9efc10c 94%, #e7f6dc18 98%, transparent); animation: scanbeam-roll 8s linear infinite; }
-.effects-paused .tv-tracking, .effects-paused .tv-scanbeam { animation-play-state: paused; }
+.tv-room:not([data-power="on"]) .tv-tracking, .tv-room:not([data-power="on"]) .tv-scanbeam { animation-play-state: paused; }
 @keyframes tracking-drift { to { transform: translateY(96px); } }
 @keyframes scanbeam-roll { to { transform: translateY(530%); } }
 .tuning-overlay { position: absolute; inset: 0; z-index: 3; opacity: 0; visibility: hidden; pointer-events: none; background: repeating-linear-gradient(0deg, #596052 0 1px, #2a3027 1px 3px); transition: opacity 400ms ease, visibility 400ms; }
 .is-loading .tuning-overlay, .is-tuning .tuning-overlay { opacity: 1; visibility: visible; transition: none; }
 .tuning-overlay canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
 .tuning-overlay::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, #0002 0 1px, transparent 1px 3px); box-shadow: inset 0 0 70px #0008; }
+.interference-overlay { position: absolute; inset: 0; z-index: 4; opacity: 0; pointer-events: none; mix-blend-mode: screen; }
+.interference-overlay.is-disturbed { opacity: calc(var(--interference, 0) * 0.7); }
+.interference-overlay canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+.interference-overlay::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent 0 21px, #b8cfa922 22px, #0009 23px 25px, transparent 26px 57px); }
 
 @container (max-width: 650px) {
   .tv-picture { padding: 5cqh 6cqw 3cqh; gap: 2.5cqh; }
@@ -148,15 +191,13 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
   .broadcast-footer { padding-top: 1.7cqh; }
   .broadcast-footer nav { gap: 3cqw; font-size: min(2.75cqw, 2.3cqh); }
   .broadcast-footer a svg { display: none; }
-  .effects-button { padding: 1cqw; }
-  .effects-button svg { width: 3cqw; height: 3cqw; }
 }
 @media (max-width: 680px) {
   .tv-room { padding: 6px; }
-  .television-stage { width: min(98vw, calc((100dvh - 12px) * 0.875)); aspect-ratio: 15.2 / 17.372; }
+  .television-stage { width: 98vw; height: calc(100dvh - 12px); }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
-  .tuning-overlay, .effects-button { display: none !important; }
+  .tuning-overlay, .interference-overlay { display: none !important; }
   .tv-picture { opacity: 1 !important; }
 }
