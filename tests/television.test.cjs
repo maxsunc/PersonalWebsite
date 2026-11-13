@@ -5,90 +5,71 @@ const path = require("node:path");
 const vm = require("node:vm");
 const ts = require("typescript");
 
-const source = fs.readFileSync(path.join(__dirname, "../src/components/TelevisionPortfolio.tsx"), "utf8");
-const compiled = ts.transpileModule(source, {
-  compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
-}).outputText;
-const experiences = ts.transpileModule(fs.readFileSync(path.join(__dirname, "../src/data/experience.ts"), "utf8"), {
-  compilerOptions: { module: ts.ModuleKind.CommonJS },
-}).outputText;
+function compile(relative) {
+  return ts.transpileModule(fs.readFileSync(path.join(__dirname, relative), "utf8"), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
+  }).outputText;
+}
 const data = {};
-vm.runInNewContext(experiences, { exports: data });
+vm.runInNewContext(compile("../src/data/experience.ts"), { exports: data });
+const layout = {};
+vm.runInNewContext(compile("../src/lib/television.ts"), { exports: layout });
 
-function mount(reducedMotion = false) {
+function startup({ ready = true, reduced = false } = {}) {
   let effect;
   let tuning = false;
-  let effectsPaused = false;
-  let stateIndex = 0;
-  let focused = false;
   let id = 0;
   const timers = new Map();
   const listeners = new Map();
-  const refs = [];
-  const document = { activeElement: null };
   const motion = {
-    matches: reducedMotion,
+    matches: reduced,
     addEventListener: (name, fn) => listeners.set(name, fn),
     removeEventListener: (name) => listeners.delete(name),
   };
-  const jsx = (type, props) => ({ type, props });
   const exports = {};
-  vm.runInNewContext(compiled, {
-    exports, document,
+  vm.runInNewContext(compile("../src/hooks/useTelevisionStartup.ts"), {
+    exports,
     window: { matchMedia: () => motion },
-    setTimeout: (fn, duration) => {
-      assert.equal(duration, 1600);
-      timers.set(++id, fn);
-      return id;
-    },
+    setTimeout: (fn, duration) => { assert.equal(duration, 2500); timers.set(++id, fn); return id; },
     clearTimeout: (id) => timers.delete(id),
-    require: (name) => {
-      if (name === "react") return {
-        useState: (initial) => {
-          const index = stateIndex++;
-          return [initial, (next) => { if (index === 0) tuning = next; else effectsPaused = next; }];
-        },
-        useRef: (current) => { const ref = { current }; refs.push(ref); return ref; },
-        useCallback: (fn) => fn,
-        useEffect: (fn) => { effect = fn; },
-      };
-      if (name === "react/jsx-runtime") return { jsx, jsxs: jsx };
-      if (name === "next/image") return { __esModule: true, default: "image" };
-      if (name === "lucide-react") return { ArrowUpRight: "arrow", RotateCcw: "replay", Pause: "pause", Play: "play" };
-      if (name === "@/components/TelevisionCabinet") return { __esModule: true, default: "cabinet" };
-      if (name === "@/components/TelevisionNoise") return { __esModule: true, default: "noise" };
-      if (name === "@/data/experience") return data;
-      if (name === "@/data/personal") return { personal: { email: "test@example.com", social: { github: "https://github.com/", linkedin: "https://linkedin.com/" } } };
-      throw new Error(`Unexpected dependency ${name}`);
-    },
+    require: () => ({ useState: () => [false, (value) => { tuning = value; }], useEffect: (fn) => { effect = fn; } }),
   });
-  const tree = exports.default();
-  refs[1].current = { focus: () => { focused = true; } };
-  refs[2].current = {};
+  exports.useTelevisionStartup(ready);
   const cleanup = effect();
-  function find(node, predicate) {
-    if (!node || typeof node !== "object") return;
-    if (predicate(node)) return node;
-    for (const child of [node.props?.children].flat(Infinity)) {
-      const result = find(child, predicate);
-      if (result) return result;
-    }
-  }
   return {
-    tree, timers, listeners, cleanup,
+    timers, listeners, cleanup,
     get tuning() { return tuning; },
-    get focused() { return focused; },
-    get effectsPaused() { return effectsPaused; },
-    pauseEffects() { find(tree, (node) => node.props?.className === "effects-button").props.onClick(); },
     finish() { for (const fn of [...timers.values()]) fn(); },
-    skip() { document.activeElement = refs[2].current; find(tree, (node) => node.props?.ref === refs[2]).props.onClick(); },
-    replay() { find(tree, (node) => node.props?.ref === refs[1]).props.onClick(); },
-    reduceMotion() { motion.matches = true; listeners.get("change")(); },
+    reduce() { motion.matches = true; listeners.get("change")(); },
   };
 }
 
-test("TV tunes once on mount, then clears static and its timer", () => {
-  const scene = mount();
+function walk(node, predicate) {
+  if (!node || typeof node !== "object") return [];
+  return [...(predicate(node) ? [node] : []), ...[node.props?.children].flat(Infinity).flatMap((child) => walk(child, predicate))];
+}
+function renderPortfolio() {
+  const exports = {};
+  const jsx = (type, props) => ({ type, props });
+  vm.runInNewContext(compile("../src/components/TelevisionPortfolio.tsx"), {
+    exports,
+    require(name) {
+      if (name === "react") return { useState: (initial) => [initial, () => {}], useRef: (current) => ({ current }), useCallback: (fn) => fn };
+      if (name === "react/jsx-runtime") return { jsx, jsxs: jsx };
+      if (name === "next/image") return { __esModule: true, default: "image" };
+      if (name === "lucide-react") return { ArrowUpRight: "arrow", Pause: "pause", Play: "play" };
+      if (name.startsWith("@/components/")) return { __esModule: true, default: name.split("/").pop() };
+      if (name === "@/hooks/useTelevisionStartup") return { useTelevisionStartup: () => false };
+      if (name === "@/data/experience") return data;
+      if (name === "@/data/personal") return { personal: { email: "test@example.com", social: { github: "https://github.com/", linkedin: "https://linkedin.com/" } } };
+      throw new Error(`Unexpected dependency: ${name}`);
+    },
+  });
+  return exports.default();
+}
+
+test("static runs for 2.5 seconds after the cabinet is ready", () => {
+  const scene = startup();
   assert.equal(scene.tuning, true);
   assert.equal(scene.timers.size, 1);
   scene.finish();
@@ -98,55 +79,66 @@ test("TV tunes once on mount, then clears static and its timer", () => {
   assert.equal(scene.listeners.size, 0);
 });
 
-test("skip clears startup and restores keyboard focus outside the overlay", () => {
-  const scene = mount();
-  scene.skip();
-  assert.equal(scene.tuning, false);
+test("model loading cannot consume the timed static sequence", () => {
+  const scene = startup({ ready: false });
+  assert.equal(scene.tuning, true);
   assert.equal(scene.timers.size, 0);
-  assert.equal(scene.focused, true);
   scene.cleanup();
 });
 
-test("retuning replaces rather than stacks timers; unmount cancels pending startup", () => {
-  const scene = mount();
-  scene.replay();
-  scene.replay();
-  assert.equal(scene.timers.size, 1);
+test("reduced motion bypasses static; a live change cancels it", () => {
+  const reduced = startup({ reduced: true });
+  assert.equal(reduced.tuning, false);
+  assert.equal(reduced.timers.size, 0);
+  reduced.cleanup();
+  const scene = startup();
+  scene.reduce();
+  assert.equal(scene.tuning, false);
+  assert.equal(scene.timers.size, 0);
+  scene.cleanup();
+});
+
+test("unmount cancels the startup timer and motion listener", () => {
+  const scene = startup();
   scene.cleanup();
   assert.equal(scene.timers.size, 0);
   assert.equal(scene.listeners.size, 0);
 });
 
-test("reduced motion bypasses intro and replay entirely", () => {
-  const scene = mount(true);
-  scene.replay();
-  assert.equal(scene.tuning, false);
-  assert.equal(scene.timers.size, 0);
-  scene.cleanup();
+test("startup overlay contains only static, with no text, logo, or skip button", () => {
+  const tree = renderPortfolio();
+  const overlay = walk(tree, (node) => node.props?.className === "tuning-overlay")[0];
+  assert.equal(overlay.props.children.type, "TelevisionStatic");
+  assert.equal(walk(overlay, (node) => node.type === "button").length, 0);
+  assert.equal(walk(tree, (node) => node.type === "h1").length, 1);
+  assert.equal(walk(tree, (node) => node.props?.className === "experience-item").length, 4);
 });
 
-test("enabling reduced motion during static immediately reveals the content", () => {
-  const scene = mount();
-  scene.reduceMotion();
-  assert.equal(scene.tuning, false);
-  assert.equal(scene.timers.size, 0);
-  scene.cleanup();
+test("responsive camera keeps the entire cabinet and display inside the viewport", () => {
+  for (const [width, height] of [[1440, 957], [1024, 681], [390, 446], [320, 366], [700, 465]]) {
+    const view = layout.televisionViewport(width, height);
+    assert.ok(view.viewWidth >= 14);
+    assert.ok(view.viewHeight >= 9.75 * view.cabinetHeight);
+    assert.ok(layout.TV_SCREEN.width < view.viewWidth);
+    assert.ok(layout.TV_SCREEN.height * view.cabinetHeight < view.viewHeight);
+  }
 });
 
-test("ambient effects can be paused without interrupting the startup", () => {
-  const scene = mount();
-  scene.pauseEffects();
-  assert.equal(scene.effectsPaused, true);
-  assert.equal(scene.tuning, true);
-  assert.equal(scene.timers.size, 1);
-  scene.cleanup();
+test("the real GLB has a separate mesh for every native button target", () => {
+  const bytes = fs.readFileSync(path.join(__dirname, "../public/models/retro-tv.glb"));
+  assert.equal(bytes.subarray(0, 4).toString(), "glTF");
+  const json = JSON.parse(bytes.subarray(20, 20 + bytes.readUInt32LE(12)).toString());
+  const names = new Set(json.nodes.map((node) => node.name));
+  for (const control of layout.TV_CONTROLS) assert.ok(names.has(`Button_${control.id}`), control.id);
+  assert.ok(names.has("ScreenGlass"));
+  assert.ok(names.has("Cabinet"));
+  assert.ok(fs.existsSync(path.join(__dirname, "../public/models/retro-tv-poster.webp")));
 });
 
-test("every experience has a local logo and a secure company website", () => {
-  assert.equal(data.experiences.length, 4);
+test("every experience retains its company logo, link, and month-to-month dates", () => {
   for (const experience of data.experiences) {
     assert.ok(fs.existsSync(path.join(__dirname, "../public", experience.logo)));
     assert.match(experience.website, /^https:\/\//);
-    assert.ok(["square", "bag", "wordmark"].includes(experience.logoStyle));
+    assert.match(experience.period, /^[A-Z][a-z]{2} — [A-Z][a-z]{2} 20\d{2}$/);
   }
 });
