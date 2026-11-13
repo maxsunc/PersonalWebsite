@@ -1,5 +1,5 @@
-import Portfolio from "@/components/Portfolio";
+import TelevisionPortfolio from "@/components/TelevisionPortfolio";
 
 export default function Home() {
-  return <Portfolio />;
+  return <TelevisionPortfolio />;
 }
