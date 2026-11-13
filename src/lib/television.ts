@@ -16,6 +16,11 @@ export function televisionPlaneTransform(tl: ScreenPoint, tr: ScreenPoint, bl: S
     tl.x, tl.y,
   ];
 }
+export const TV_CHANNELS = [
+  { id: "portfolio", label: "Portfolio" },
+  { id: "about", label: "About me" },
+  { id: "projects", label: "Projects" },
+] as const;
 export const TV_CONTROLS = [
   { id: "channel-up", label: "Channel up", x: 5.10, y: 2.35, width: 0.78, height: 0.58 },
   { id: "channel-down", label: "Channel down", x: 6.02, y: 2.35, width: 0.78, height: 0.58 },

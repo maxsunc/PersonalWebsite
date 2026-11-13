@@ -6,6 +6,7 @@ export interface ProjectLink {
 export interface Project {
   title: string;
   description: string;
+  television?: { title: string; summary: string; image: string };
   image: string;
   tags: string[];
   links: ProjectLink[];
@@ -15,6 +16,7 @@ export interface Project {
 export const projects: Project[] = [
   {
     title: 'Tower of Wizard',
+    television: { title: 'Tower of Wizard', summary: 'A spellslinging roguelite built in Unity, coming to Steam.', image: '/images/television/tower-of-wizard.webp' },
     description:
       'Spellslinging action rogue-like to be released on Steam. Tower of Wizard is a survival rogue-lite where you ascend a cursed tower filled with monstrous foes and fallen wizards. Collect powerful relics, craft broken builds, and uncover the mystery that waits at the top floor.',
     image: '/images/towlogo.jpg',
@@ -27,6 +29,7 @@ export const projects: Project[] = [
   },
   {
     title: 'Attack on Titan ODM Gear Simulator',
+    television: { title: 'ODM Gear Simulator', summary: 'Attack on Titan-inspired movement, recreated with 3D physics in Unity.', image: '/images/television/odm-gear.webp' },
     description:
       'A full 3D recreation of the ODM gear from Attack On Titan using physics and Unity\'s Game Engine!',
     image: '/images/logo.png',
@@ -50,6 +53,7 @@ export const projects: Project[] = [
   },
   {
     title: 'Boxhead AR',
+    television: { title: 'Boxhead AR', summary: 'A handmade cardboard AR headset with real-time object tracking.', image: '/images/television/boxhead-ar.webp' },
     description:
       'Handcrafted augmented reality cardboard headset with real-time object tracking.',
     image: '/images/boxhead.jpg',

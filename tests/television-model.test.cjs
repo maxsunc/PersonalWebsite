@@ -33,7 +33,7 @@ function mountControls(overrides = {}) {
   });
   const actions = [];
   const tree = exports.default({ displayRef: { current: null }, onReady() {}, volume: 50, powered: true, frontView: false,
-    onToggleView: () => actions.push("view"), onTogglePower: () => actions.push("power"), onVolumeChange: (value) => actions.push(["volume", value]), ...overrides });
+    onToggleView: () => actions.push("view"), onTogglePower: () => actions.push("power"), onVolumeChange: (value) => actions.push(["volume", value]), onChannelChange: (direction) => actions.push(["channel", direction]), ...overrides });
   const presses = [];
   refs[1].current = (id, pressed) => presses.push([id, pressed]);
   const inputs = tree.props.children.find((node) => node.props?.className === "cabinet-inputs").props.children.flat();
@@ -68,6 +68,20 @@ test("VIEW and POWER trigger their assigned actions and expose their toggle stat
   assert.equal(active.controls[2].props["aria-pressed"], true);
   assert.equal(active.controls[2].props["aria-label"], "Return to 3D view");
   assert.equal(active.controls[3].props["aria-label"], "Turn TV on");
+});
+
+test("physical + and − buttons request the next and previous channels, and disable when off", () => {
+  const { controls, actions } = mountControls();
+  const up = controls.find((node) => node.props["data-control"] === "channel-up").props;
+  const down = controls.find((node) => node.props["data-control"] === "channel-down").props;
+  assert.equal(up["aria-label"], "Next channel");
+  assert.equal(down["aria-label"], "Previous channel");
+  up.onClick(); down.onClick();
+  assert.deepEqual(actions, [["channel", 1], ["channel", -1]]);
+  for (const overrides of [{ powered: false }, { powerBusy: true }]) {
+    const tv = mountControls(overrides);
+    assert.ok(tv.controls.filter((node) => node.props["data-control"].startsWith("channel-")).every((node) => node.props.disabled));
+  }
 });
 
 test("volume uses a controlled native range, not volume buttons", () => {

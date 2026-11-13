@@ -22,12 +22,13 @@ type Props = {
   onToggleView: () => void;
   onTogglePower: () => void;
   onVolumeChange: (value: number) => void;
+  onChannelChange: (direction: -1 | 1) => void;
 };
 type AntennaDrag = { id: TVAntenna; x: number; y: number; time: number };
 
 export default function TelevisionModel({ displayRef, onReady, onInterference, frontView,
   volume = 50, powered = true, powerBusy = false, controlsDisabled = false,
-  onToggleView, onTogglePower, onVolumeChange }: Props) {
+  onToggleView, onTogglePower, onVolumeChange, onChannelChange }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
   const pressRef = useRef<(id: TVControl, pressed: boolean) => void>(() => {});
   const adjustRef = useRef<(id: TVAntenna, delta: number, elapsed: number, reset?: boolean) => void>(() => {});
@@ -447,12 +448,12 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
       <div className="cabinet-inputs" role="group" aria-label="TV controls">
         {TV_CONTROLS.map((control) => (
           <button key={control.id} type="button" data-control={control.id} className={`cabinet-button cabinet-button-${control.id}`}
-            aria-label={control.id === "view" ? (frontView ? "Return to 3D view" : "Front view for reading") : control.id === "power" ? (powered ? "Turn TV off" : "Turn TV on") : `${control.label} (not assigned yet)`}
-            title={control.id === "view" ? "Front view / 3D view" : control.id === "power" ? (powered ? "Turn TV off" : "Turn TV on") : `${control.label} — not assigned yet`}
+            aria-label={control.id === "view" ? (frontView ? "Return to 3D view" : "Front view for reading") : control.id === "power" ? (powered ? "Turn TV off" : "Turn TV on") : control.id === "channel-up" ? "Next channel" : "Previous channel"}
+            title={control.id === "view" ? "Front view / 3D view" : control.id === "power" ? (powered ? "Turn TV off" : "Turn TV on") : control.id === "channel-up" ? "Next channel (+)" : "Previous channel (−)"}
             aria-pressed={control.id === "view" ? frontView : control.id === "power" ? powered : undefined}
             aria-controls={control.id === "view" ? "television-stage" : undefined}
-            disabled={controlsDisabled || (control.id === "power" && powerBusy)}
-            onClick={control.id === "view" ? onToggleView : control.id === "power" ? onTogglePower : undefined}
+            disabled={controlsDisabled || (control.id === "power" && powerBusy) || (control.id.startsWith("channel-") && (!powered || powerBusy))}
+            onClick={control.id === "view" ? onToggleView : control.id === "power" ? onTogglePower : () => onChannelChange(control.id === "channel-up" ? 1 : -1)}
             onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); pressRef.current(control.id, true); }}
             onPointerUp={() => pressRef.current(control.id, false)} onPointerCancel={() => pressRef.current(control.id, false)}
             onLostPointerCapture={() => pressRef.current(control.id, false)}

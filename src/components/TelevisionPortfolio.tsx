@@ -8,10 +8,14 @@ import TelevisionNoise from "@/components/TelevisionNoise";
 import TelevisionStatic from "@/components/TelevisionStatic";
 import { useTelevisionStartup } from "@/hooks/useTelevisionStartup";
 import { useTelevisionPower, TV_POWER_OFF_DURATION, TV_POWER_ON_DURATION } from "@/hooks/useTelevisionPower";
-import { clampTVVolume } from "@/lib/television";
+import { clampTVVolume, TV_CHANNELS } from "@/lib/television";
+import { useTelevisionChannels } from "@/hooks/useTelevisionChannels";
+import { projects } from "@/data/projects";
 import { useAntennaInterference } from "@/hooks/useAntennaInterference";
 import { experiences } from "@/data/experience";
 import { personal } from "@/data/personal";
+
+const televisionProjects = projects.flatMap((project) => project.television ? [{ ...project, ...project.television }] : []);
 
 export default function TelevisionPortfolio() {
   const displayRef = useRef<HTMLDivElement>(null);
@@ -23,52 +27,79 @@ export default function TelevisionPortfolio() {
   const changeVolume = useCallback((value: number) => setVolume(clampTVVolume(value)), []);
   const tuning = useTelevisionStartup(modelReady);
   const { phase, powered, transitioning, togglePower } = useTelevisionPower();
-  const retuning = tuning || phase === "turning-on";
-  const screenPaused = tuning || phase !== "on";
+  const { channel, switching, changeChannel } = useTelevisionChannels(modelReady && !tuning && phase === "on");
+  const retuning = tuning || switching || phase === "turning-on";
+  const screenPaused = retuning || phase !== "on";
   const { strength, disturb } = useAntennaInterference(screenPaused);
 
   return (
     <div className={`tv-room ${!modelReady ? "is-loading" : ""} ${retuning ? "is-tuning" : "is-on"} ${frontView ? "is-front-view" : ""}`}
-      data-power={phase} style={{ "--power-duration": `${phase === "turning-off" ? TV_POWER_OFF_DURATION : TV_POWER_ON_DURATION}ms` } as CSSProperties}>
+      data-power={phase} data-channel={TV_CHANNELS[channel].id} style={{ "--power-duration": `${phase === "turning-off" ? TV_POWER_OFF_DURATION : TV_POWER_ON_DURATION}ms` } as CSSProperties}>
       <div className="television-stage" id="television-stage">
         <TelevisionModel displayRef={displayRef} onReady={onModelReady} onInterference={disturb} frontView={frontView}
           volume={volume} powered={powered} powerBusy={transitioning} controlsDisabled={!modelReady || tuning}
-          onToggleView={toggleView} onTogglePower={togglePower} onVolumeChange={changeVolume} />
+          onToggleView={toggleView} onTogglePower={togglePower} onVolumeChange={changeVolume} onChannelChange={changeChannel} />
         <div ref={displayRef} className="tv-glass">
           <div className="tv-broadcast" aria-hidden={retuning || phase !== "on"}>
             <div className="tv-picture" inert={retuning || phase !== "on"}>
-              <main className="broadcast-main" id="main">
-                <section className="intro" aria-labelledby="name">
-                  <h1 id="name">Max Sun<span>.</span></h1>
-                  <p className="education">Computer Engineering<br /> <span>@ UWaterloo</span></p>
-                </section>
-                <section className="experience" aria-labelledby="experience-heading">
-                  <h2 id="experience-heading">Experience</h2>
-                  <div className="experience-list">
-                    {experiences.map((experience, index) => (
-                      <article className="experience-item" key={experience.company}>
-                        <a
-                          className={`company-logo logo-${experience.logoStyle}`}
-                          href={experience.website} target="_blank" rel="noopener noreferrer"
-                          aria-label={`${experience.company} website (opens in a new tab)`}
-                        >
-                          <Image src={experience.logo} alt="" width={48} height={48} sizes="48px" />
-                        </a>
-                        <div className="experience-copy">
-                          <h3>
-                            <a href={experience.website} target="_blank" rel="noopener noreferrer">
-                              {experience.company}<ArrowUpRight aria-hidden="true" />
-                              <span className="sr-only"> (opens in a new tab)</span>
-                            </a>
-                            {index === 0 && <span className="incoming-label">Incoming</span>}
-                          </h3>
-                          <p className="experience-role">{experience.title.replace("Incoming ", "")}</p>
-                          <p className="experience-date">{experience.period}</p>
+              <span className="channel-indicator" aria-hidden="true">CH {String(channel + 1).padStart(2, "0")} · {TV_CHANNELS[channel].label}</span>
+              <main className={`broadcast-main ${channel === 1 ? "about-channel" : channel === 2 ? "projects-channel" : ""}`} id="main">
+                {channel === 0 && <>
+                  <section className="intro" aria-labelledby="name">
+                    <h1 id="name">Max Sun<span>.</span></h1>
+                    <p className="education">Computer Engineering<br /> <span>@ UWaterloo</span></p>
+                  </section>
+                  <section className="experience" aria-labelledby="experience-heading">
+                    <h2 id="experience-heading">Experience</h2>
+                    <div className="experience-list">
+                      {experiences.map((experience, index) => (
+                        <article className="experience-item" key={experience.company}>
+                          <a
+                            className={`company-logo logo-${experience.logoStyle}`}
+                            href={experience.website} target="_blank" rel="noopener noreferrer"
+                            aria-label={`${experience.company} website (opens in a new tab)`}
+                          >
+                            <Image src={experience.logo} alt="" width={48} height={48} sizes="48px" />
+                          </a>
+                          <div className="experience-copy">
+                            <h3>
+                              <a href={experience.website} target="_blank" rel="noopener noreferrer">
+                                {experience.company}<ArrowUpRight aria-hidden="true" />
+                                <span className="sr-only"> (opens in a new tab)</span>
+                              </a>
+                              {index === 0 && <span className="incoming-label">Incoming</span>}
+                            </h3>
+                            <p className="experience-role">{experience.title.replace("Incoming ", "")}</p>
+                            <p className="experience-date">{experience.period}</p>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  </section>
+                </>}
+                {channel === 1 && <section className="about-content" aria-labelledby="about-heading">
+                  <Image className="about-photo" src="/images/television/profile.webp" alt="Max Sun" width={480} height={480} sizes="(max-width: 680px) 110px, 240px" />
+                  <div className="about-copy">
+                    <h1 id="about-heading">Hi, I’m Max<span>.</span></h1>
+                    <p>I’m a Computer Engineering student at UWaterloo. I like good food, making games, and watching anime.</p>
+                  </div>
+                </section>}
+                {channel === 2 && <>
+                  <h1 className="channel-heading" id="projects-heading">Projects<span>.</span></h1>
+                  <section className="tv-project-list" aria-labelledby="projects-heading">
+                    {televisionProjects.map((project) => (
+                      <article className="tv-project" key={project.title}>
+                        <Image src={project.image} alt="" width={360} height={225} sizes="(max-width: 680px) 70px, 150px" />
+                        <div>
+                          <h2><a href={project.links[0].url} target="_blank" rel="noopener noreferrer">
+                            {project.title}<ArrowUpRight aria-hidden="true" /><span className="sr-only"> (opens in a new tab)</span>
+                          </a></h2>
+                          <p>{project.summary}</p>
                         </div>
                       </article>
                     ))}
-                  </div>
-                </section>
+                  </section>
+                </>}
               </main>
               <footer className="broadcast-footer">
                 <nav aria-label="Contact and résumé">
@@ -95,6 +126,7 @@ export default function TelevisionPortfolio() {
           </div>
         </div>
       </div>
+      <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">{modelReady && !retuning && phase === "on" ? `Channel ${channel + 1}: ${TV_CHANNELS[channel].label}` : ""}</p>
       <noscript><style>{`.is-loading .television-stage{opacity:1;pointer-events:auto}.is-loading .tv-picture{opacity:1}.is-loading .tuning-overlay{display:none}`}</style></noscript>
     </div>
   );

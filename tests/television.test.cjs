@@ -14,6 +14,8 @@ const data = {};
 vm.runInNewContext(compile("../src/data/experience.ts"), { exports: data });
 const layout = {};
 vm.runInNewContext(compile("../src/lib/television.ts"), { exports: layout });
+const projectData = {};
+vm.runInNewContext(compile("../src/data/projects.ts"), { exports: projectData });
 
 function startup({ ready = true, reduced = false } = {}) {
   let effect;
@@ -48,7 +50,7 @@ function walk(node, predicate) {
   if (!node || typeof node !== "object") return [];
   return [...(predicate(node) ? [node] : []), ...[node.props?.children].flat(Infinity).flatMap((child) => walk(child, predicate))];
 }
-function renderPortfolio({ ready = false, tuning = false, front = false, volume = 50, phase = "on", onToggle = () => {}, onVolume = () => {}, onPower = () => {} } = {}) {
+function renderPortfolio({ ready = false, tuning = false, front = false, volume = 50, phase = "on", channel = 0, switching = false, onChannel = () => {}, onChannelEnabled = () => {}, onToggle = () => {}, onVolume = () => {}, onPower = () => {} } = {}) {
   const exports = {};
   let stateIndex = 0;
   const jsx = (type, props) => ({ type, props });
@@ -67,8 +69,10 @@ function renderPortfolio({ ready = false, tuning = false, front = false, volume 
       if (name === "@/hooks/useTelevisionPower") return { TV_POWER_OFF_DURATION: 180, TV_POWER_ON_DURATION: 500,
         useTelevisionPower: () => ({ phase, powered: phase === "on" || phase === "turning-on", transitioning: phase === "turning-off" || phase === "turning-on", togglePower: onPower }) };
       if (name === "@/hooks/useTelevisionStartup") return { useTelevisionStartup: () => tuning };
+      if (name === "@/hooks/useTelevisionChannels") return { useTelevisionChannels: (enabled) => { onChannelEnabled(enabled); return { channel, switching, changeChannel: onChannel }; } };
       if (name === "@/hooks/useAntennaInterference") return { useAntennaInterference: () => ({ strength: 0, disturb() {} }) };
       if (name === "@/data/experience") return data;
+      if (name === "@/data/projects") return projectData;
       if (name === "@/data/personal") return { personal: { email: "test@example.com", social: { github: "https://github.com/", linkedin: "https://linkedin.com/" } } };
       throw new Error(`Unexpected dependency: ${name}`);
     },
@@ -200,6 +204,61 @@ test("power hides only the broadcast, disables its links/effects, and preserves 
     assert.equal(model.powered, phase === "turning-on");
     assert.equal(model.powerBusy, phase !== "off");
   }
+});
+
+test("About channel shows the local profile picture, greeting, and concise interests", () => {
+  const tree = renderPortfolio({ ready: true, channel: 1 });
+  assert.equal(tree.props["data-channel"], "about");
+  const photo = walk(tree, (node) => node.props?.className === "about-photo")[0];
+  assert.equal(photo.props.alt, "Max Sun");
+  assert.ok(fs.existsSync(path.join(__dirname, "../public", photo.props.src)));
+  assert.ok(fs.readFileSync(path.join(__dirname, "../scripts/create-tv-channel-images.cjs"), "utf8").includes('["pfp2.png", "profile", 480, 480]'));
+  assert.match(walk(tree, (node) => node.type === "h1")[0].props.children[0], /Hi, I’m Max/);
+  const bio = walk(tree, (node) => node.props?.className === "about-copy")[0].props.children[1].props.children;
+  assert.match(bio, /good food, making games, and watching anime/);
+  assert.ok(bio.length < 150);
+  assert.equal(walk(tree, (node) => node.props?.className === "experience-item").length, 0);
+});
+
+test("Projects channel fits three concise, linked projects with local thumbnails on one screen", () => {
+  const tree = renderPortfolio({ ready: true, channel: 2 });
+  assert.equal(tree.props["data-channel"], "projects");
+  const cards = walk(tree, (node) => node.props?.className === "tv-project");
+  assert.equal(cards.length, 3);
+  for (const card of cards) {
+    const photo = walk(card, (node) => node.type === "image")[0];
+    assert.ok(fs.existsSync(path.join(__dirname, "../public", photo.props.src)));
+    const link = walk(card, (node) => node.type === "a")[0].props;
+    assert.match(link.href, /^https:\/\//);
+    assert.equal(link.rel, "noopener noreferrer");
+    const description = walk(card, (node) => node.type === "p")[0].props.children;
+    assert.ok(description.length < 100);
+  }
+});
+
+test("channel changes show full-frame static, pause noise/interference, and make picture links inert", () => {
+  const actions = [];
+  const tree = renderPortfolio({ ready: true, switching: true, onChannel: (direction) => actions.push(direction) });
+  assert.match(tree.props.className, /\bis-tuning\b/);
+  assert.equal(walk(tree, (node) => node.props?.className === "tv-picture")[0].props.inert, true);
+  assert.equal(walk(tree, (node) => node.type === "TelevisionNoise")[0].props.paused, true);
+  const overlay = walk(tree, (node) => node.props?.className === "tuning-overlay")[0];
+  assert.equal(overlay.props.children.props.active, true);
+  assert.equal(walk(tree, (node) => node.props?.role === "status")[0].props.children, "");
+  const model = walk(tree, (node) => node.type === "TelevisionModel")[0].props;
+  model.onChannelChange(1); model.onChannelChange(-1);
+  assert.deepEqual(actions, [1, -1]);
+  assert.equal(model.controlsDisabled, false); // rapid taps can select another destination
+});
+
+test("channels cannot interrupt initial startup or a power transition", () => {
+  for (const options of [{ ready: false }, { ready: true, tuning: true }, ...["off", "turning-off", "turning-on"].map((phase) => ({ ready: true, phase }))]) {
+    let enabled;
+    renderPortfolio({ ...options, onChannelEnabled: (value) => { enabled = value; } });
+    assert.equal(enabled, false);
+  }
+  const tree = renderPortfolio({ ready: true, channel: 2 });
+  assert.equal(walk(tree, (node) => node.props?.role === "status")[0].props.children, "Channel 3: Projects");
 });
 
 test("responsive camera keeps the entire cabinet and display inside the viewport", () => {
