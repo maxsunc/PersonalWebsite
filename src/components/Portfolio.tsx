@@ -161,15 +161,6 @@ export default function Portfolio() {
               </a>
             ))}
           </nav>
-          <a
-            href="/Max_Sun_Resume.pdf"
-            className="header-resume text-link"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Résumé <ArrowUpRight size={15} aria-hidden="true" />
-            <span className="sr-only"> (opens in a new tab)</span>
-          </a>
         </header>
       )}
 
@@ -281,7 +272,6 @@ export default function Portfolio() {
                     My interests include game development, web technologies, and
                     3D modeling in Blender.
                   </p>
-                  <ExternalLink href="/Max_Sun_Resume.pdf">Résumé</ExternalLink>
                 </div>
                 <div className="experience-panel">
                   <div className="panel-label">

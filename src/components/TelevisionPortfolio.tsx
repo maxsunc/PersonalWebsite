@@ -107,8 +107,7 @@ export default function TelevisionPortfolio() {
                 <FnafChannel volume={volume} active={channel === 2 && !screenPaused} />
               </main>
               {channel !== 2 && <footer className="broadcast-footer">
-                <nav aria-label="Contact and résumé">
-                  <a href="/Max_Sun_Resume.pdf" target="_blank" rel="noopener noreferrer">Résumé<span className="sr-only"> (opens in a new tab)</span><ArrowUpRight aria-hidden="true" /></a>
+                <nav aria-label="Contact">
                   <a href={`mailto:${personal.email}`} aria-label={`Email ${personal.email}`}>Email<ArrowUpRight aria-hidden="true" /></a>
                   <a href={personal.social.github} target="_blank" rel="noopener noreferrer">GitHub<span className="sr-only"> (opens in a new tab)</span><ArrowUpRight aria-hidden="true" /></a>
                   <a href={personal.social.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn<span className="sr-only"> (opens in a new tab)</span><ArrowUpRight aria-hidden="true" /></a>

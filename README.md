@@ -28,7 +28,6 @@ The landing transition uses a smoothstep curve for a deliberate start and settle
 - **Featured projects:** `featuredProjects` in `src/components/Portfolio.tsx`, using entries from `src/data/projects.ts`
 - **Experience:** `src/data/experience.ts`
 - **Contact and social links:** `src/data/personal.ts`
-- **Résumé:** `public/Max_Sun_Resume.pdf`
 
 ## Legacy components
 
