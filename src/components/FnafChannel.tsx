@@ -16,7 +16,9 @@ export default function FnafChannel({ volume, active }: { volume: number; active
 
   if (!started) return null;
 
-  return <iframe ref={frame} className="fnaf-frame" src="/games/fnaf1/index.html"
+  // Vercel serves exported index pages at directory URLs; Next dev needs the filename.
+  return <iframe ref={frame} className="fnaf-frame"
+    src={process.env.NODE_ENV === "development" ? "/games/fnaf1/index.html" : "/games/fnaf1/"}
     style={{ display: active ? "block" : "none" }} aria-hidden={!active} tabIndex={active ? 0 : -1}
     title="Five Nights at Freddy’s 1" onLoad={syncVolume} allow="autoplay" />;
 }
