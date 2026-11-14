@@ -11,12 +11,10 @@ import { useTelevisionStartup } from "@/hooks/useTelevisionStartup";
 import { useTelevisionPower, TV_POWER_OFF_DURATION, TV_POWER_ON_DURATION } from "@/hooks/useTelevisionPower";
 import { clampTVVolume, TV_CHANNELS } from "@/lib/television";
 import { useTelevisionChannels } from "@/hooks/useTelevisionChannels";
-import { projects } from "@/data/projects";
+import { useTelevisionChannelSound } from "@/hooks/useTelevisionChannelSound";
 import { useAntennaInterference } from "@/hooks/useAntennaInterference";
 import { experiences } from "@/data/experience";
 import { personal } from "@/data/personal";
-
-const televisionProjects = projects.flatMap((project) => project.television ? [{ ...project, ...project.television }] : []);
 
 export default function TelevisionPortfolio() {
   const displayRef = useRef<HTMLDivElement>(null);
@@ -28,7 +26,9 @@ export default function TelevisionPortfolio() {
   const changeVolume = useCallback((value: number) => setVolume(clampTVVolume(value)), []);
   const tuning = useTelevisionStartup(modelReady);
   const { phase, powered, transitioning, togglePower } = useTelevisionPower();
-  const { channel, switching, changeChannel } = useTelevisionChannels(modelReady && !tuning && phase === "on");
+  const channelsEnabled = modelReady && !tuning && phase === "on";
+  const { channel, switching, changeChannel } = useTelevisionChannels(channelsEnabled);
+  const changeChannelWithSound = useTelevisionChannelSound(channelsEnabled, volume, changeChannel);
   const retuning = tuning || switching || phase === "turning-on";
   const screenPaused = retuning || phase !== "on";
   const { strength, disturb } = useAntennaInterference(screenPaused);
@@ -39,11 +39,11 @@ export default function TelevisionPortfolio() {
       <div className="television-stage" id="television-stage">
         <TelevisionModel displayRef={displayRef} onReady={onModelReady} onInterference={disturb} frontView={frontView}
           volume={volume} powered={powered} powerBusy={transitioning} controlsDisabled={!modelReady || tuning}
-          onToggleView={toggleView} onTogglePower={togglePower} onVolumeChange={changeVolume} onChannelChange={changeChannel} />
+          onToggleView={toggleView} onTogglePower={togglePower} onVolumeChange={changeVolume} onChannelChange={changeChannelWithSound} />
         <div ref={displayRef} className="tv-glass">
           <div className="tv-broadcast" aria-hidden={retuning || phase !== "on"}>
             <div className="tv-picture" inert={retuning || phase !== "on"}>
-              <main className={`broadcast-main ${channel === 1 ? "about-channel" : channel === 2 ? "projects-channel" : channel === 3 ? "game-channel" : ""}`} id="main">
+              <main className={`broadcast-main ${channel === 1 ? "about-channel" : channel === 2 ? "game-channel" : ""}`} id="main">
                 {channel === 0 && <>
                   <section className="intro" aria-labelledby="name">
                     <h1 id="name">Max Sun<span>.</span></h1>
@@ -84,25 +84,9 @@ export default function TelevisionPortfolio() {
                     <p>I’m a Computer Engineering student at UWaterloo. I like good food, making games, and watching anime.</p>
                   </div>
                 </section>}
-                {channel === 2 && <>
-                  <h1 className="channel-heading" id="projects-heading">Projects<span>.</span></h1>
-                  <section className="tv-project-list" aria-labelledby="projects-heading">
-                    {televisionProjects.map((project) => (
-                      <article className="tv-project" key={project.title}>
-                        <Image src={project.image} alt="" width={360} height={225} sizes="(max-width: 680px) 70px, 150px" />
-                        <div>
-                          <h2><a href={project.links[0].url} target="_blank" rel="noopener noreferrer">
-                            {project.title}<ArrowUpRight aria-hidden="true" /><span className="sr-only"> (opens in a new tab)</span>
-                          </a></h2>
-                          <p>{project.summary}</p>
-                        </div>
-                      </article>
-                    ))}
-                  </section>
-                </>}
-                <FnafChannel volume={volume} active={channel === 3 && !screenPaused} />
+                <FnafChannel volume={volume} active={channel === 2 && !screenPaused} />
               </main>
-              {channel !== 3 && <footer className="broadcast-footer">
+              {channel !== 2 && <footer className="broadcast-footer">
                 <nav aria-label="Contact and résumé">
                   <a href="/Max_Sun_Resume.pdf" target="_blank" rel="noopener noreferrer">Résumé<span className="sr-only"> (opens in a new tab)</span><ArrowUpRight aria-hidden="true" /></a>
                   <a href={`mailto:${personal.email}`} aria-label={`Email ${personal.email}`}>Email<ArrowUpRight aria-hidden="true" /></a>

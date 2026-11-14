@@ -69,6 +69,7 @@ function renderPortfolio({ ready = false, tuning = false, front = false, volume 
       if (name === "@/hooks/useTelevisionPower") return { TV_POWER_OFF_DURATION: 180, TV_POWER_ON_DURATION: 500,
         useTelevisionPower: () => ({ phase, powered: phase === "on" || phase === "turning-on", transitioning: phase === "turning-off" || phase === "turning-on", togglePower: onPower }) };
       if (name === "@/hooks/useTelevisionStartup") return { useTelevisionStartup: () => tuning };
+      if (name === "@/hooks/useTelevisionChannelSound") return { useTelevisionChannelSound: (_enabled, _volume, change) => change };
       if (name === "@/hooks/useTelevisionChannels") return { useTelevisionChannels: (enabled) => { onChannelEnabled(enabled); return { channel, switching, changeChannel: onChannel }; } };
       if (name === "@/hooks/useAntennaInterference") return { useAntennaInterference: () => ({ strength: 0, disturb() {} }) };
       if (name === "@/data/experience") return data;
@@ -220,19 +221,14 @@ test("About channel shows the local profile picture, greeting, and concise inter
   assert.equal(walk(tree, (node) => node.props?.className === "experience-item").length, 0);
 });
 
-test("Projects channel fits three concise, linked projects with local thumbnails on one screen", () => {
-  const tree = renderPortfolio({ ready: true, channel: 2 });
-  assert.equal(tree.props["data-channel"], "projects");
-  const cards = walk(tree, (node) => node.props?.className === "tv-project");
-  assert.equal(cards.length, 3);
-  for (const card of cards) {
-    const photo = walk(card, (node) => node.type === "image")[0];
-    assert.ok(fs.existsSync(path.join(__dirname, "../public", photo.props.src)));
-    const link = walk(card, (node) => node.type === "a")[0].props;
-    assert.match(link.href, /^https:\/\//);
-    assert.equal(link.rel, "noopener noreferrer");
-    const description = walk(card, (node) => node.type === "p")[0].props.children;
-    assert.ok(description.length < 100);
+test("FNAF is the third channel, retains its runtime, and mutes when inactive", () => {
+  assert.deepEqual(Array.from(layout.TV_CHANNELS, channel => channel.id), ["portfolio", "about", "fnaf"]);
+  for (const [channel, phase, active] of [[2, "on", true], [0, "on", false], [2, "off", false]]) {
+    const tree = renderPortfolio({ ready: true, channel, phase });
+    const game = walk(tree, node => node.type === "FnafChannel")[0];
+    assert.ok(game);
+    assert.equal(game.props.active, active);
+    assert.equal(walk(tree, node => node.props?.className === "tv-project").length, 0);
   }
 });
 
@@ -258,7 +254,7 @@ test("channels cannot interrupt initial startup or a power transition", () => {
     assert.equal(enabled, false);
   }
   const tree = renderPortfolio({ ready: true, channel: 2 });
-  assert.equal(walk(tree, (node) => node.props?.role === "status")[0].props.children, "Channel 3: Projects");
+  assert.equal(walk(tree, (node) => node.props?.role === "status")[0].props.children, "Channel 3: FNAF 1");
 });
 
 test("responsive camera keeps the entire cabinet and display inside the viewport", () => {
