@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Five Nights at Freddy’s — TV Channel</title>
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
+    body { display: flex; align-items: center; justify-content: center; }
+    #MMFCanvas { display: block; width: min(100vw, 177.777778vh); height: min(56.25vw, 100vh); touch-action: none; }
+  </style>
+  <script src="src/Runtime.js"></script>
+</head>
+<body>
+  <canvas id="MMFCanvas" width="1280" height="720" aria-label="Five Nights at Freddy’s game">Your browser does not support Canvas.</canvas>
+  <script>
+    let volume = 0;
+    let runtime;
+    function applyVolume() {
+      if (runtime) runtime.setTVVolume(volume);
+    }
+    window.addEventListener('message', function (event) {
+      if (event.source !== parent || event.origin !== location.origin) return;
+      if (event.data && event.data.type === 'fnaf-volume' && Number.isFinite(event.data.volume)) {
+        volume = Math.max(0, Math.min(100, event.data.volume));
+        applyVolume();
+      }
+    });
+    window.addEventListener('load', function () {
+      runtime = new Runtime('MMFCanvas', 'resources/FNAF1HTML5.cch');
+      applyVolume();
+    });
+  </script>
+</body>
+</html>
