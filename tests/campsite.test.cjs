@@ -68,15 +68,34 @@ test('screen is a front-facing soft area emitter, lights both layers, scales on 
   assert.equal(light.isRectAreaLight, true);
   assert.equal(light.width, 10.4); assert.equal(light.height, 7.48);
   assert.ok(light.intensity > 0);
+  assert.ok(light.color.g > light.color.r && light.color.r > light.color.b, 'muted green phosphor tint, not blue');
   assert.ok(light.layers.isEnabled(0)); assert.ok(light.layers.isEnabled(1));
   assert.ok(light.position.z > 1.325);
   const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(light.quaternion);
   assert.ok(forward.z > .99);
+  const edges = ['top', 'bottom', 'left', 'right'].map(name => scene.getObjectByName(`TVScreenSpill_${name}`));
+  for (const edge of edges) {
+    assert.equal(edge.isRectAreaLight, true);
+    assert.ok(edge.color.equals(light.color));
+    assert.ok(edge.width * edge.height < 2, 'small-area spill does not overpower the main screen');
+    const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(edge.quaternion);
+    assert.ok(direction.z < -.5, 'spill points back towards the bezel');
+    assert.ok(edge.layers.isEnabled(0));
+  }
+  assert.ok(new THREE.Vector3(0, 0, -1).applyQuaternion(edges[0].quaternion).y > .5);
+  assert.ok(new THREE.Vector3(0, 0, -1).applyQuaternion(edges[1].quaternion).y < -.5);
+  assert.ok(new THREE.Vector3(0, 0, -1).applyQuaternion(edges[2].quaternion).x < -.5);
+  assert.ok(new THREE.Vector3(0, 0, -1).applyQuaternion(edges[3].quaternion).x > .5);
   camp.setHeight(1.72); assert.equal(light.height, 7.48 * 1.72);
+  assert.equal(edges[2].height, 7.48 * 1.72);
   camp.update(0, 0, 1, true); assert.equal(light.height, 7.48);
+  assert.equal(edges[2].height, 7.48);
   camp.setPowered(false); assert.equal(light.visible, false);
+  assert.ok(edges.every(edge => !edge.visible));
   camp.update(2, .03, 1, false); assert.equal(light.visible, false);
+  assert.ok(edges.every(edge => !edge.visible));
   camp.setPowered(true); assert.equal(light.visible, true);
+  assert.ok(edges.every(edge => edge.visible));
   camp.dispose(); assert.equal(scene.getObjectByName('TVScreenLight'), undefined);
 });
 test('real shadow-casting fire lights TV and landscape, flickers, rests for reduced motion, and cleans up', async () => {
