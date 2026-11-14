@@ -16,27 +16,57 @@ export function createNightSky() {
       }`,
     fragmentShader: `
       varying vec3 skyDirection;
-      float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453); }
-      float stars(vec2 uv, vec2 grid) {
+      // Integer avalanche hash (WebGL2): avoids the diagonal patterns and
+      // precision banding that float-only hashes produce in dense star fields.
+      float hash(vec2 p) {
+        uvec2 cell = uvec2(ivec2(floor(p)));
+        uint n = (cell.x * 1597334677u) ^ (cell.y * 3812015801u);
+        n = (n ^ (n >> 16u)) * 2246822519u;
+        n = (n ^ (n >> 13u)) * 3266489917u;
+        n ^= n >> 16u;
+        return float(n >> 8u) / 16777216.0;
+      }
+      float noise(vec2 p) {
+        vec2 cell = floor(p), f = fract(p);
+        f = f * f * (3.0 - 2.0 * f);
+        return mix(mix(hash(cell), hash(cell + vec2(1.,0.)), f.x),
+                   mix(hash(cell + vec2(0.,1.)), hash(cell + 1.), f.x), f.y);
+      }
+      vec3 stars(vec2 uv, vec2 grid, float density, float gain) {
         vec2 cell = floor(uv * grid);
         vec2 local = fract(uv * grid);
-        float seed = hash(cell);
-        vec2 center = .2 + .6 * vec2(hash(cell + 19.7), hash(cell + 83.1));
-        float radius = mix(.055, .14, hash(cell + 41.9));
-        float dist = length(local - center);
-        vec2 footprint = fwidth(uv * grid);
-        float aa = max(max(footprint.x, footprint.y) * .6, .012);
-        return step(.93, seed) * (1.0 - smoothstep(radius - aa, radius + aa, dist)) * mix(.4, 1.8, hash(cell + 9.3));
+        vec2 center = .3 + .4 * vec2(hash(cell + 19.7), hash(cell + 83.1));
+        vec2 footprint = max(fwidth(uv * grid), vec2(.00001));
+        float rarity = pow(hash(cell + 41.9), 7.0);
+        // Tiny Gaussian point-spread functions, not filled circles. The cap is
+        // in drawing-buffer pixels, so zooming in cannot turn stars into discs.
+        float angularSize = mix(.009, .04, rarity);
+        float sigma = clamp(angularSize / sqrt(footprint.x * footprint.y), .48, 1.0);
+        // Keep the entire three-sigma profile inside its jittered cell. This
+        // prevents derivative streaks and square edges at cell boundaries.
+        sigma = min(sigma, .1 / max(footprint.x, footprint.y));
+        vec2 offset = (local - center) / footprint / sigma;
+        float r2 = dot(offset, offset);
+        float core = exp(-.5 * r2) * (1.0 - smoothstep(4.0, 9.0, r2));
+        float brightness = mix(.055, 1.15, rarity) * gain;
+        // Mostly off-white, with restrained warm/cool stellar temperatures.
+        vec3 temperature = mix(vec3(1.,.80,.62), vec3(.68,.82,1.), hash(cell + 57.3));
+        float resolved = 1.0 - smoothstep(.35, .85, max(footprint.x, footprint.y));
+        return temperature * core * brightness * step(1.0 - density, hash(cell)) * resolved;
       }
       void main() {
         vec3 dir = normalize(skyDirection);
         float elevation = smoothstep(-.15, .8, dir.y);
         vec3 color = mix(vec3(.003,.006,.014), vec3(.001,.002,.007), elevation);
         vec2 uv = vec2(atan(dir.z,dir.x)/6.2831853+.5, asin(clamp(dir.y,-1.,1.))/3.14159265+.5);
-        float band = exp(-pow((dir.y + dir.x*.28 - .36)*9.0, 2.0));
-        color += vec3(.003,.004,.009) * band;
-        float star = stars(uv, vec2(1000.,500.));
-        color += vec3(.73,.83,1.) * star * smoothstep(-.45,-.08,dir.y);
+        // Very faint, irregular galactic haze rather than a flat blue stripe.
+        float dust = noise(dir.xz * 16.) * .6 + noise(dir.xz * 43.) * .3 + noise(dir.xz * 110.) * .1;
+        float band = exp(-pow((dir.y + dir.x*.28 - .36 + (dust-.5)*.12)*7.0, 2.0));
+        color += vec3(.0025,.0028,.0035) * band * dust;
+        // A sparse, brighter population over many fine, faint background stars.
+        vec3 star = stars(uv, vec2(2200.,1100.), .33, 1.0)
+                  + stars(uv + vec2(.137,.291), vec2(6500.,3250.), .50, .18);
+        color += star * smoothstep(-.45,-.08,dir.y);
         gl_FragColor = vec4(color, 1.0);
         #include <colorspace_fragment>
       }`,

@@ -49,6 +49,20 @@ test('camera-following sky covers every tested zoom/aspect without near/far clip
   }
   sky.dispose();
 });
+test('stars use tiny pixel-capped Gaussian profiles, a faint second population and natural temperature variation', async () => {
+  const { createNightSky } = await loadModule();
+  const sky = createNightSky();
+  const shader = sky.object.material.fragmentShader;
+  assert.match(shader, /exp\(-\.5 \* r2\)/, 'soft point spread instead of solid circles');
+  assert.match(shader, /clamp\(angularSize[^;]+, \.48, 1\.0\)/, 'zoom cannot enlarge star cores beyond one buffer-pixel sigma');
+  assert.match(shader, /sigma = min\(sigma, \.1 \/ max\(footprint\.x, footprint\.y\)\)/, 'tails stay within their cells without box artifacts');
+  assert.match(shader, /pow\(hash\(cell \+ 41\.9\), 7\.0\)/, 'most stars are faint and small, not uniformly bright');
+  assert.match(shader, /vec3 temperature = mix/);
+  assert.match(shader, /vec2\(2200\.,1100\.\)/);
+  assert.match(shader, /vec2\(6500\.,3250\.\), \.50, \.18/);
+  assert.doesNotMatch(shader, /uniform\s+float\s+time/);
+  sky.dispose();
+});
 test('Blender campsite has broad terrain, grass, fire and stump; no bedroom or duplicate TV', async () => {
   const { THREE, asset } = await loadModule();
   const terrain = asset.scene.getObjectByName('Terrain'); assert.ok(terrain);

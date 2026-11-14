@@ -87,7 +87,9 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
       let roomEnvironment: Awaited<ReturnType<typeof import("@/lib/campsite").createCampsite>> | undefined;
       let roomFrame = 0;
       let roomPrevious = 0;
-      stopRoomMotion = () => { if (roomFrame) cancelAnimationFrame(roomFrame); roomFrame = 0; roomPrevious = 0; };
+      let roomNextFrame = 0;
+      const roomFrameInterval = 1000 / 60;
+      stopRoomMotion = () => { if (roomFrame) cancelAnimationFrame(roomFrame); roomFrame = 0; roomPrevious = 0; roomNextFrame = 0; };
       let viewFrame = 0;
       let settleView = () => {};
       stopViewMotion = () => {
@@ -270,9 +272,14 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
       const animateRoom = (time: number) => {
         roomFrame = 0;
         if (disposed || !live || document.hidden || motion.matches || !roomEnvironment) return;
-        if (!roomPrevious || time - roomPrevious >= 1000 / 30) {
+        // Keep an independent deadline so rAF rounding does not accidentally
+        // halve the rate on 60 Hz displays. Skip missed slots, never catch up in bursts.
+        if (!roomNextFrame || time + .5 >= roomNextFrame) {
           const elapsed = roomPrevious ? Math.min(.1, (time - roomPrevious) / 1000) : 0;
           roomPrevious = time;
+          roomNextFrame = roomNextFrame
+            ? roomNextFrame + Math.max(1, Math.floor((time - roomNextFrame) / roomFrameInterval) + 1) * roomFrameInterval
+            : time + roomFrameInterval;
           const { width, height } = host.getBoundingClientRect();
           roomEnvironment.update(time / 1000, elapsed, televisionViewport(width, height).cabinetHeight, false);
           draw();

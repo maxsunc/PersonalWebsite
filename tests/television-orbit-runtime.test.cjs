@@ -12,13 +12,13 @@ function compile(relative) {
 const layout = {};
 vm.runInNewContext(compile("../src/lib/television.ts"), { exports: layout });
 
-async function mountModel({ reduced = false, width = 800, height = 716, failRenderer = false } = {}) {
+async function mountModel({ reduced = false, width = 800, height = 716, failRenderer = false, campsite = false } = {}) {
   const THREE = await import("three");
   const listeners = new Map();
   const documentListeners = new Map();
   const captures = new Set();
   const frames = new Map();
-  const signals = [], warnings = [];
+  const signals = [], warnings = [], campsiteUpdates = [];
   let readySnapshot;
   let frameId = 0, now = 0, antenna, thumb, led, loads = 0;
   const motion = { matches: reduced, addEventListener(_name, fn) { this.listener = fn; }, removeEventListener() { this.listener = undefined; } };
@@ -105,6 +105,10 @@ async function mountModel({ reduced = false, width = 800, height = 716, failRend
       if (name === "react/jsx-runtime") return { jsx, jsxs: jsx };
       if (name === "next/image") return { __esModule: true, default: "image" };
       if (name === "@/lib/television") return layout;
+      if (name === "@/lib/campsite" && campsite) return { createCampsite: async () => ({
+        setHeight() {}, setPowered() {}, syncCamera() {}, invalidateShadows() {}, dispose() {},
+        update(time, elapsed, height, still) { campsiteUpdates.push({ time, elapsed, height, still }); },
+      }) };
       if (name === "three") return { ...THREE, WebGLRenderer: Renderer };
       if (name === "three/examples/jsm/loaders/GLTFLoader.js") return { GLTFLoader: Loader };
       throw new Error(`Unexpected dependency ${name}`);
@@ -120,13 +124,14 @@ async function mountModel({ reduced = false, width = 800, height = 716, failRend
   }
   render(false);
   await readyPromise;
+  if (campsite) await new Promise(resolve => setImmediate(resolve));
   const pointer = (x, y, blocked = false) => ({
     pointerId: 1, button: 0, clientX: x, clientY: y,
     target: { closest: (selector) => blocked === "input" ? (selector.includes("input") ? {} : null) : blocked ? {} : null }, preventDefault() {},
   });
   const step = (elapsed = 16) => { now += elapsed; for (const [id, fn] of [...frames]) { frames.delete(id); fn(now); } };
   return {
-    display, inputs, listeners, documentListeners, frames, signals, layoutWrites, range, readySnapshot, warnings,
+    display, inputs, listeners, documentListeners, frames, signals, layoutWrites, range, readySnapshot, warnings, campsiteUpdates,
     get thumbX() { return thumb.position.x; }, get ledIntensity() { return led.material.emissiveIntensity; }, get loads() { return loads; },
     settings(values) { render(currentProps.frontView, values); },
     resize(nextWidth, nextHeight) { width = nextWidth; height = nextHeight; resizeCallback(); },
@@ -150,6 +155,35 @@ async function mountModel({ reduced = false, width = 800, height = 716, failRend
     cleanup() { for (const effect of effects) effect.cleanup?.(); },
   };
 }
+
+test("campsite runs near 60 FPS across refresh rates without rounding skips or catch-up bursts", async () => {
+  for (const hz of [60, 120, 144]) {
+    const model = await mountModel({ campsite: true });
+    for (let i = 0; i < hz; i++) model.step(1000 / hz);
+    const updates = model.campsiteUpdates.filter(update => !update.still);
+    assert.ok(updates.length >= 59 && updates.length <= 61, `${hz} Hz: ${updates.length} updates`);
+    const beforeStall = updates.length;
+    model.step(2000);
+    const afterStall = model.campsiteUpdates.filter(update => !update.still);
+    assert.equal(afterStall.length, beforeStall + 1);
+    assert.equal(afterStall.at(-1).elapsed, .1);
+    model.hide();
+    const paused = model.campsiteUpdates.length;
+    model.step(1000); assert.equal(model.campsiteUpdates.length, paused);
+    assert.equal(model.frames.size, 0);
+    model.cleanup();
+  }
+  const reduced = await mountModel({ campsite: true, reduced: true });
+  assert.equal(reduced.frames.size, 0);
+  assert.ok(reduced.campsiteUpdates.every(update => update.still));
+  reduced.cleanup();
+  const switching = await mountModel({ campsite: true });
+  switching.step(17); switching.reduce();
+  const paused = switching.campsiteUpdates.length;
+  switching.step(1000); assert.equal(switching.campsiteUpdates.length, paused);
+  assert.equal(switching.frames.size, 0);
+  switching.cleanup();
+});
 
 test("scroll zoom reveals the room without changing TV layout and preserves reading mode", async () => {
   const model = await mountModel({ reduced: true });
