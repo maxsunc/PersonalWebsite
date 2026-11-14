@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Github, Linkedin, Mail } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import TelevisionModel from "@/components/TelevisionModel";
 import FnafChannel from "@/components/FnafChannel";
@@ -108,9 +108,9 @@ export default function TelevisionPortfolio() {
               </main>
               {channel !== 2 && <footer className="broadcast-footer">
                 <nav aria-label="Contact">
-                  <a href={`mailto:${personal.email}`} aria-label={`Email ${personal.email}`}>Email<ArrowUpRight aria-hidden="true" /></a>
-                  <a href={personal.social.github} target="_blank" rel="noopener noreferrer">GitHub<span className="sr-only"> (opens in a new tab)</span><ArrowUpRight aria-hidden="true" /></a>
-                  <a href={personal.social.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn<span className="sr-only"> (opens in a new tab)</span><ArrowUpRight aria-hidden="true" /></a>
+                  <a href={`mailto:${personal.email}`} aria-label={`Email ${personal.email}`}><Mail aria-hidden="true" />Email</a>
+                  <a href={personal.social.github} target="_blank" rel="noopener noreferrer"><Github aria-hidden="true" />GitHub<span className="sr-only"> (opens in a new tab)</span></a>
+                  <a href={personal.social.linkedin} target="_blank" rel="noopener noreferrer"><Linkedin aria-hidden="true" />LinkedIn<span className="sr-only"> (opens in a new tab)</span></a>
                 </nav>
               </footer>}
             </div>

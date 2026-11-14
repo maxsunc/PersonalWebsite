@@ -59,11 +59,11 @@ function renderPortfolio({ ready = false, tuning = false, front = false, volume 
     require(name) {
       if (name === "react") return {
         useState: () => { const index = stateIndex++; return [index === 0 ? ready : index === 1 ? front : volume, (value) => { if (index === 1) onToggle(typeof value === "function" ? value(front) : value); if (index === 2) onVolume(value); }]; },
-        useRef: (current) => ({ current }), useCallback: (fn) => fn,
+        useRef: (current) => ({ current }), useCallback: (fn) => fn, useEffect: () => {},
       };
       if (name === "react/jsx-runtime") return { jsx, jsxs: jsx };
       if (name === "next/image") return { __esModule: true, default: "image" };
-      if (name === "lucide-react") return { ArrowUpRight: "arrow", Maximize2: "maximize", Minimize2: "minimize" };
+      if (name === "lucide-react") return { ArrowUpRight: "arrow", Github: "github", Linkedin: "linkedin", Mail: "mail", Maximize2: "maximize", Minimize2: "minimize" };
       if (name.startsWith("@/components/")) return { __esModule: true, default: name.split("/").pop() };
       if (name === "@/lib/television") return layout;
       if (name === "@/hooks/useTelevisionPower") return { TV_POWER_OFF_DURATION: 180, TV_POWER_ON_DURATION: 500,

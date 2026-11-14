@@ -157,7 +157,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
 .broadcast-footer { display: flex; align-items: center; justify-content: space-between; gap: 2cqw; padding-top: 2.5cqh; border-top: 1px solid var(--rule); min-width: 0; }
 .broadcast-footer nav { display: flex; align-items: center; gap: 3cqw; font: 1.15cqw var(--font-jetbrains-mono), monospace; }
 .broadcast-footer a { display: inline-flex; align-items: center; gap: 0.4cqw; }
-.broadcast-footer a svg { width: 1.1cqw; height: 1.1cqw; }
+.broadcast-footer a svg { width: 1em; height: 1em; flex-shrink: 0; }
 
 /* The game keeps its original 16:9 canvas, letterboxed inside the TV glass. */
 .tv-room[data-channel="fnaf"] .tv-picture { padding: 5cqh 3cqw 3cqh; grid-template-rows: minmax(0, 1fr); gap: 0; background: #000; }
@@ -222,7 +222,6 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
   .experience-date { font-size: min(2.6cqw, 2.1cqh); margin-top: 0.45cqh; }
   .broadcast-footer { padding-top: 1.7cqh; }
   .broadcast-footer nav { gap: 3cqw; font-size: min(2.75cqw, 2.3cqh); }
-  .broadcast-footer a svg { display: none; }
 }
 @media (max-width: 680px) {
   .tv-room { padding: 6px; }
