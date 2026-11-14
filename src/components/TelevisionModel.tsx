@@ -57,6 +57,8 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
     let live = false;
     let stopAntennaMotion = () => {};
     let stopViewMotion = () => {};
+    let stopRoomMotion = () => {};
+    let disposeRoom = () => {};
     const originalPositions = new Map<Object3D, number>();
     const buttonMaterials = new Map<Object3D, { material: MeshStandardMaterial; color: Color }[]>();
     const releaseModel = (root: Object3D) => {
@@ -75,11 +77,17 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
       ]);
       if (disposed) return;
       const scene = new THREE.Scene();
-      const camera = new THREE.OrthographicCamera(-8.1, 8.1, 7.25, -7.25, 0.1, 100);
+      const camera = new THREE.OrthographicCamera(-8.1, 8.1, 7.25, -7.25, 0.1, 1000);
+      camera.layers.enable(1);
       const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
       let explorePose: { yaw: number; pitch: number } = { ...TV_REST_POSE };
       let pose = frontRef.current ? { yaw: 0, pitch: 0 } : { ...explorePose };
       let viewBlend = frontRef.current ? 1 : 0;
+      let roomZoom = 1;
+      let roomEnvironment: Awaited<ReturnType<typeof import("@/lib/campsite").createCampsite>> | undefined;
+      let roomFrame = 0;
+      let roomPrevious = 0;
+      stopRoomMotion = () => { if (roomFrame) cancelAnimationFrame(roomFrame); roomFrame = 0; roomPrevious = 0; };
       let viewFrame = 0;
       let settleView = () => {};
       stopViewMotion = () => {
@@ -97,7 +105,8 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
         antennaFrame = 0; antennaPrevious = 0;
         antennaTargets.clear();
       };
-      scene.add(new THREE.HemisphereLight(0xe9eddd, 0x22271c, 2.4));
+      const tvAmbient = new THREE.HemisphereLight(0xe9eddd, 0x22271c, 2.4);
+      scene.add(tvAmbient);
       const key = new THREE.DirectionalLight(0xffeed5, 4.5);
       key.position.set(-5, 7, 10);
       scene.add(key);
@@ -118,9 +127,11 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
         const readingViewport = televisionViewport(width, height, true);
         const viewport = {
           cabinetHeight: orbitViewport.cabinetHeight,
-          viewWidth: THREE.MathUtils.lerp(orbitViewport.viewWidth, readingViewport.viewWidth, viewBlend),
-          viewHeight: THREE.MathUtils.lerp(orbitViewport.viewHeight, readingViewport.viewHeight, viewBlend),
+          viewWidth: THREE.MathUtils.lerp(orbitViewport.viewWidth * roomZoom, readingViewport.viewWidth, viewBlend),
+          viewHeight: THREE.MathUtils.lerp(orbitViewport.viewHeight * roomZoom, readingViewport.viewHeight, viewBlend),
         };
+        roomEnvironment?.setHeight(viewport.cabinetHeight);
+        roomEnvironment?.setPowered(settingsRef.current.powered);
         // Keep the rendered fallback centered at its original camera composition
         // now that both viewing modes share one fixed-size canvas.
         const poster = host.querySelector<HTMLImageElement>(".cabinet-poster");
@@ -136,7 +147,9 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
         camera.bottom = -viewport.viewHeight / 2;
         camera.updateProjectionMatrix();
         const targetY = (1 - viewBlend) * 1.2 * viewport.cabinetHeight;
-        const radius = 23;
+        // Pull the physical orthographic camera back as the frustum grows, so
+        // the foreground grass is not sliced by the near plane at wide zoom.
+        const radius = 23 + (roomZoom - 1) * 75 * (1 - viewBlend);
         camera.position.set(
           Math.sin(pose.yaw) * Math.cos(pose.pitch) * radius,
           targetY + Math.sin(pose.pitch) * radius,
@@ -166,6 +179,7 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
           camera.zoom = THREE.MathUtils.lerp(fitTVProjection(corners), 1, viewBlend);
           camera.updateProjectionMatrix();
         }
+        roomEnvironment?.syncCamera(camera);
         const screenVisible = isTVScreenVisible(pose.yaw, pose.pitch);
         display.style.visibility = screenVisible ? "visible" : "hidden";
         display.inert = !screenVisible;
@@ -226,7 +240,7 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
         renderer?.render(scene, camera);
       };
 
-      refreshControlsRef.current = draw;
+      refreshControlsRef.current = () => { roomEnvironment?.invalidateShadows(); draw(); };
 
       // Direct click-and-drag orbit: no hover motion, damping, or snap-back.
       // Pointer capture keeps rotating even after the cursor leaves the cabinet.
@@ -237,6 +251,7 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
           drag.yaw - (event.clientX - drag.x) / Math.max(1, rect.width) * Math.PI * 2,
           drag.pitch + (event.clientY - drag.y) / Math.max(1, rect.height) * Math.PI,
         );
+        if (roomEnvironment) pose.pitch = Math.max(.10, Math.min(1.25, pose.pitch));
         explorePose = { ...pose };
         draw();
       };
@@ -252,18 +267,44 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
         stage.classList.remove("is-dragging");
         if (stage.hasPointerCapture(event.pointerId)) stage.releasePointerCapture(event.pointerId);
       };
+      const animateRoom = (time: number) => {
+        roomFrame = 0;
+        if (disposed || !live || document.hidden || motion.matches || !roomEnvironment) return;
+        if (!roomPrevious || time - roomPrevious >= 1000 / 30) {
+          const elapsed = roomPrevious ? Math.min(.1, (time - roomPrevious) / 1000) : 0;
+          roomPrevious = time;
+          const { width, height } = host.getBoundingClientRect();
+          roomEnvironment.update(time / 1000, elapsed, televisionViewport(width, height).cabinetHeight, false);
+          draw();
+        }
+        roomFrame = requestAnimationFrame(animateRoom);
+      };
+      const resumeRoom = () => {
+        if (!roomFrame && live && !document.hidden && !motion.matches && roomEnvironment) roomFrame = requestAnimationFrame(animateRoom);
+      };
+      const onWheel = (event: WheelEvent) => {
+        if (!live || frontRef.current || viewFrame || event.ctrlKey || (event.target as Element).closest("input")) return;
+        const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? host.getBoundingClientRect().height : 1);
+        const next = Math.max(1, Math.min(3.8, roomZoom * Math.exp(Math.max(-200, Math.min(200, delta)) * .0015)));
+        if (next === roomZoom) return;
+        event.preventDefault();
+        roomZoom = next;
+        draw();
+      };
       const onVisibility = () => {
         drag = null; antennaDragRef.current = null; stage.classList.remove("is-dragging");
-        if (document.hidden) { stopAntennaMotion(); if (viewFrame) settleView(); }
-        else draw();
+        if (document.hidden) { stopAntennaMotion(); stopRoomMotion(); if (viewFrame) settleView(); }
+        else { draw(); resumeRoom(); }
       };
       const onMotion = () => {
-        if (!motion.matches) return;
+        if (!motion.matches) { resumeRoom(); return; }
+        stopRoomMotion();
+        if (roomEnvironment) { const { width, height } = host.getBoundingClientRect(); roomEnvironment.update(0, 0, televisionViewport(width, height).cabinetHeight, true); }
         for (const [id, target] of antennaTargets) {
           const pivot = model?.getObjectByName(`Antenna_${id}`);
           if (pivot) pivot.rotation.z = target;
         }
-        stopAntennaMotion(); if (viewFrame) settleView(); draw();
+        stopAntennaMotion(); roomEnvironment?.invalidateShadows(); if (viewFrame) settleView(); draw();
       };
       changeViewRef.current = () => {
         drag = null;
@@ -292,6 +333,7 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
         };
         viewFrame = requestAnimationFrame(animate);
       };
+      stage.addEventListener("wheel", onWheel, { passive: false });
       stage.addEventListener("pointermove", onMove);
       stage.addEventListener("pointerdown", onDown);
       stage.addEventListener("pointerup", onUp);
@@ -300,6 +342,7 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
       document.addEventListener("visibilitychange", onVisibility);
       motion.addEventListener("change", onMotion);
       detachInteraction = () => {
+        stage.removeEventListener("wheel", onWheel);
         stage.removeEventListener("pointermove", onMove);
         stage.removeEventListener("pointerdown", onDown);
         stage.removeEventListener("pointerup", onUp);
@@ -316,6 +359,7 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
         renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "low-power" });
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
         renderer.outputColorSpace = THREE.SRGBColorSpace;
+        if (renderer.shadowMap) { renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; }
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 1.05;
         renderer.domElement.setAttribute("aria-hidden", "true");
@@ -326,7 +370,7 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
         const contextLost = (event: Event) => {
           event.preventDefault();
           live = false;
-          stopAntennaMotion(); stopViewMotion();
+          stopAntennaMotion(); stopViewMotion(); stopRoomMotion();
           if (!disposed) { viewBlend = 0; pose = { ...TV_REST_POSE }; setLoaded(false); draw(); }
         };
         const contextRestored = () => {
@@ -334,7 +378,8 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
           live = true; size = { width: 0, height: 0 };
           pose = frontRef.current ? { yaw: 0, pitch: 0 } : { ...explorePose };
           viewBlend = frontRef.current ? 1 : 0;
-          draw(); setLoaded(true);
+          roomEnvironment?.invalidateShadows();
+          draw(); setLoaded(true); resumeRoom();
         };
         renderer.domElement.addEventListener("webglcontextlost", contextLost);
         renderer.domElement.addEventListener("webglcontextrestored", contextRestored);
@@ -347,6 +392,8 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
         model = gltf.scene;
         scene.add(model);
         model.traverse((object) => {
+          const surface = object as Mesh;
+          if (surface.isMesh) { surface.castShadow = true; surface.receiveShadow = true; }
           originalPositions.set(object, object.position.z);
           if (!object.name.startsWith("Button_") && object.name !== "StandbyLED") return;
           const mesh = object as Mesh;
@@ -360,6 +407,7 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
           if (!button || !live) return;
           button.position.z = originalPositions.get(button)! - (pressed ? 0.075 : 0);
           button.scale.setScalar(pressed ? 0.965 : 1);
+          roomEnvironment?.invalidateShadows();
           for (const { material, color } of buttonMaterials.get(button) ?? []) material.color.copy(color).multiplyScalar(pressed ? 0.65 : 1);
           draw();
         };
@@ -378,6 +426,7 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
             disruption = Math.max(disruption, antennaDisruption(pivot.rotation.z - previous, elapsed));
             if (pivot.rotation.z === target) antennaTargets.delete(id);
           }
+          roomEnvironment?.invalidateShadows();
           draw();
           if (disruption && !motion.matches) signalRef.current(disruption);
           if (antennaTargets.size) antennaFrame = requestAnimationFrame(animateAntennas);
@@ -387,7 +436,7 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
           const pivot = model?.getObjectByName(`Antenna_${id}`);
           if (!pivot || !live || document.hidden) return;
           const next = reset ? 0 : antennaAngle(antennaTargets.get(id) ?? pivot.rotation.z, delta);
-          if (motion.matches) { pivot.rotation.z = next; draw(); return; }
+          if (motion.matches) { pivot.rotation.z = next; roomEnvironment?.invalidateShadows(); draw(); return; }
           if (next === pivot.rotation.z && !antennaTargets.has(id)) return;
           antennaTargets.set(id, next);
           if (!antennaFrame) antennaFrame = requestAnimationFrame(animateAntennas);
@@ -395,6 +444,17 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
         live = true;
         draw();
         setLoaded(true);
+        // Keep the optional campsite off the critical path for the TV.
+        void import("@/lib/campsite").then(({ createCampsite }) => createCampsite(scene)).then(environment => {
+          if (disposed) { environment.dispose(); return; }
+          roomEnvironment = environment;
+          // Let the campfire and moon light the cabinet instead of the studio rig.
+          tvAmbient.intensity = .12; key.intensity = .28; fill.intensity = .12; rim.intensity = .18;
+          disposeRoom = () => environment.dispose();
+          const { width, height } = host.getBoundingClientRect();
+          environment.update(0, 0, televisionViewport(width, height).cabinetHeight, true);
+          draw(); resumeRoom();
+        }).catch(error => console.warn("Campsite unavailable; keeping the TV.", error));
       } catch (error) {
         console.warn("3D television unavailable; using the rendered cabinet.", error);
         renderer?.domElement.remove(); renderer?.dispose(); renderer = undefined;
@@ -407,7 +467,7 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
     });
     return () => {
       disposed = true;
-      stopAntennaMotion(); stopViewMotion();
+      stopAntennaMotion(); stopViewMotion(); stopRoomMotion(); disposeRoom();
       observer?.disconnect(); detachContext?.(); detachInteraction?.();
       changeViewRef.current = () => {}; refreshControlsRef.current = () => {};
       pressRef.current = () => {}; adjustRef.current = () => {}; antennaDragRef.current = null;
@@ -445,6 +505,7 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
   return (
     <div ref={hostRef} className={`television-model ${loaded ? "model-loaded" : ""}`}>
       <Image className="cabinet-poster" src="/models/retro-tv-poster.webp" alt="" fill priority sizes="100vw" aria-hidden="true" />
+      <p className="room-explore-hint">Drag to look around · Scroll to zoom · VIEW to read</p>
       <div className="cabinet-inputs" role="group" aria-label="TV controls">
         {TV_CONTROLS.map((control) => (
           <button key={control.id} type="button" data-control={control.id} className={`cabinet-button cabinet-button-${control.id}`}

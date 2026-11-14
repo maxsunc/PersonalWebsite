@@ -141,9 +141,36 @@ async function mountModel({ reduced = false, width = 800, height = 716, failRend
     move(x, y) { listeners.get("pointermove")(pointer(x, y)); },
     up() { listeners.get("pointerup")(pointer(0, 0)); },
     front(value) { render(value); },
+    wheel(deltaY, options = {}) {
+      let prevented = false;
+      listeners.get("wheel")({ deltaY, deltaMode: 0, ctrlKey: false, target: { closest: () => null },
+        preventDefault() { prevented = true; }, ...options });
+      return prevented;
+    },
     cleanup() { for (const effect of effects) effect.cleanup?.(); },
   };
 }
+
+test("scroll zoom reveals the room without changing TV layout and preserves reading mode", async () => {
+  const model = await mountModel({ reduced: true });
+  const initialSpan = model.cameraSpan;
+  const initialWidth = model.display.style.width;
+  assert.equal(model.wheel(200), true);
+  assert.ok(model.cameraSpan > initialSpan);
+  assert.equal(model.display.style.width, initialWidth);
+  const zoomedSpan = model.cameraSpan;
+  assert.equal(model.wheel(200, { ctrlKey: true }), false);
+  assert.equal(model.cameraSpan, zoomedSpan);
+  model.front(true);
+  assert.equal(model.wheel(200), false);
+  model.front(false);
+  assert.ok(Math.abs(model.cameraSpan - zoomedSpan) < 1e-8);
+  for (let i = 0; i < 30; i++) model.wheel(-200);
+  assert.ok(Math.abs(model.cameraSpan - initialSpan) < 1e-8);
+  assert.equal(model.wheel(-200), false);
+  model.cleanup();
+  assert.equal(model.listeners.has("wheel"), false);
+});
 
 test("startup readiness follows the first exact screen projection and rendered cabinet", async () => {
   for (const failRenderer of [false, true]) {
