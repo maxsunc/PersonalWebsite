@@ -23,12 +23,14 @@ type Props = {
   onTogglePower: () => void;
   onVolumeChange: (value: number) => void;
   onChannelChange: (direction: -1 | 1) => void;
+  onSelectFnaf: () => void;
+  fnafAvailable: boolean;
 };
 type AntennaDrag = { id: TVAntenna; x: number; y: number; time: number };
 
 export default function TelevisionModel({ displayRef, onReady, onInterference, frontView,
   volume = 50, powered = true, powerBusy = false, controlsDisabled = false,
-  onToggleView, onTogglePower, onVolumeChange, onChannelChange }: Props) {
+  onToggleView, onTogglePower, onVolumeChange, onChannelChange, onSelectFnaf, fnafAvailable = false }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
   const pressRef = useRef<(id: TVControl, pressed: boolean) => void>(() => {});
   const adjustRef = useRef<(id: TVAntenna, delta: number, elapsed: number, reset?: boolean) => void>(() => {});
@@ -38,6 +40,8 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
   const changeViewRef = useRef<() => void>(() => {});
   const settingsRef = useRef({ volume, powered });
   const refreshControlsRef = useRef<() => void>(() => {});
+  const freddyActionRef = useRef({ available: fnafAvailable, select: onSelectFnaf });
+  freddyActionRef.current = { available: fnafAvailable, select: onSelectFnaf };
   const [loaded, setLoaded] = useState(false);
   useEffect(() => { signalRef.current = onInterference; }, [onInterference]);
   useEffect(() => { frontRef.current = frontView; changeViewRef.current(); }, [frontView]);
@@ -265,6 +269,11 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
         stage.classList.add("is-dragging");
       };
       const onUp = (event: globalThis.PointerEvent) => {
+        if (event.type === "pointerup" && drag && freddyActionRef.current.available && Math.hypot(event.clientX - drag.x, event.clientY - drag.y) < 5) {
+          const rect = host.getBoundingClientRect();
+          const pointer = new THREE.Vector2((event.clientX - rect.left) / rect.width * 2 - 1, 1 - (event.clientY - rect.top) / rect.height * 2);
+          if (roomEnvironment?.pickFreddy(camera, pointer)) freddyActionRef.current.select();
+        }
         drag = null;
         stage.classList.remove("is-dragging");
         if (stage.hasPointerCapture(event.pointerId)) stage.releasePointerCapture(event.pointerId);
@@ -513,6 +522,8 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
     <div ref={hostRef} className={`television-model ${loaded ? "model-loaded" : ""}`}>
       <Image className="cabinet-poster" src="/models/retro-tv-poster.webp" alt="" fill priority sizes="100vw" aria-hidden="true" />
       <p className="room-explore-hint">Drag to look around · Scroll to zoom · VIEW to read</p>
+      <button type="button" className="freddy-keyboard sr-only" disabled={!loaded || !fnafAvailable || frontView}
+        aria-label="Boop the Freddy doll" onClick={onSelectFnaf}>Freddy</button>
       <div className="cabinet-inputs" role="group" aria-label="TV controls">
         {TV_CONTROLS.map((control) => (
           <button key={control.id} type="button" data-control={control.id} className={`cabinet-button cabinet-button-${control.id}`}

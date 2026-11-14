@@ -54,6 +54,8 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
 .model-loaded .cabinet-poster { opacity: 0; pointer-events: none; }
 .cabinet-canvas { z-index: 1; display: block; }
 .cabinet-inputs { z-index: 4; pointer-events: none; }
+.freddy-keyboard { pointer-events: none; }
+.freddy-keyboard:focus-visible { position: absolute; z-index: 5; left: 12px; bottom: 12px; width: auto; height: auto; margin: 0; clip: auto; clip-path: none; overflow: visible; padding: 6px 10px; background: #111810; }
 .antenna-inputs { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
 .antenna-handle { position: absolute; height: 28px; border-radius: 20px; pointer-events: auto; cursor: grab; touch-action: none; outline: none; }
 .antenna-handle:hover, .antenna-handle:focus-visible { background: #c4df9b12; box-shadow: 0 0 14px #d4e7ae26; }

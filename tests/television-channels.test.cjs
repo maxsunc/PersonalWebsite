@@ -67,11 +67,11 @@ function mount({ enabled = true, reduced = false, hidden = false } = {}) {
   };
 }
 
-test("channel + and − cycle circularly through Portfolio, About, FNAF in both directions", () => {
+test("channel + and − cycle only Portfolio and About in both directions", () => {
   const tv = mount();
   assert.equal(tv.channel, 0);
-  for (const expected of [1, 2, 0, 1]) { tv.change(1); tv.advance(350); assert.equal(tv.channel, expected); }
-  for (const expected of [0, 2, 1, 0]) { tv.change(-1); tv.advance(350); assert.equal(tv.channel, expected); }
+  for (const expected of [1, 0, 1, 0]) { tv.change(1); tv.advance(350); assert.equal(tv.channel, expected); }
+  for (const expected of [1, 0, 1, 0]) { tv.change(-1); tv.advance(350); assert.equal(tv.channel, expected); }
   assert.equal(layout.TV_CHANNELS.length, 3);
   tv.cleanup();
 });
@@ -91,8 +91,8 @@ test("rapid presses accumulate from the requested channel and restart one static
   tv.change(1); tv.advance(100); tv.change(1);
   assert.equal(tv.timers.size, 1);
   tv.advance(250); assert.equal(tv.channel, 0); assert.equal(tv.switching, true);
-  tv.advance(100); assert.equal(tv.channel, 2); assert.equal(tv.switching, false);
-  tv.change(1); tv.change(-1); tv.advance(350); assert.equal(tv.channel, 2);
+  tv.advance(100); assert.equal(tv.channel, 0); assert.equal(tv.switching, false);
+  tv.change(1); tv.change(-1); tv.advance(350); assert.equal(tv.channel, 0);
   tv.cleanup();
 });
 
@@ -103,14 +103,14 @@ test("startup/off ignores channel presses; powering off cancels pending tuning a
   tv.change(1); tv.enable(false);
   assert.equal(tv.switching, false); assert.equal(tv.timers.size, 0);
   tv.advance(1000); assert.equal(tv.channel, 1);
-  tv.enable(true); tv.change(1); tv.advance(350); assert.equal(tv.channel, 2);
+  tv.enable(true); tv.change(1); tv.advance(350); assert.equal(tv.channel, 0);
   tv.cleanup();
 });
 
 test("reduced motion and hidden tabs switch without snow or deferred timers", () => {
   for (const options of [{ reduced: true }, { hidden: true }]) {
     const tv = mount(options);
-    tv.change(-1); assert.equal(tv.channel, 2); assert.equal(tv.switching, false);
+    tv.change(-1); assert.equal(tv.channel, 1); assert.equal(tv.switching, false);
     assert.equal(tv.timers.size, 0); tv.cleanup();
   }
   for (const event of ["hide", "reduce"]) {

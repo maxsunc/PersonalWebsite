@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
-import { useCallback, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import TelevisionModel from "@/components/TelevisionModel";
 import FnafChannel from "@/components/FnafChannel";
 import TelevisionNoise from "@/components/TelevisionNoise";
@@ -11,13 +11,16 @@ import { useTelevisionStartup } from "@/hooks/useTelevisionStartup";
 import { useTelevisionPower, TV_POWER_OFF_DURATION, TV_POWER_ON_DURATION } from "@/hooks/useTelevisionPower";
 import { clampTVVolume, TV_CHANNELS } from "@/lib/television";
 import { useTelevisionChannels } from "@/hooks/useTelevisionChannels";
-import { useTelevisionChannelSound } from "@/hooks/useTelevisionChannelSound";
+import { useTelevisionChannelSound, type TVTuneRequest } from "@/hooks/useTelevisionChannelSound";
 import { useAntennaInterference } from "@/hooks/useAntennaInterference";
 import { experiences } from "@/data/experience";
 import { personal } from "@/data/personal";
 
 export default function TelevisionPortfolio() {
   const displayRef = useRef<HTMLDivElement>(null);
+  const freddyBoops = useRef(0);
+  const freddyAudio = useRef<HTMLAudioElement | null>(null);
+  useEffect(() => () => { freddyAudio.current?.pause(); }, []);
   const [modelReady, setModelReady] = useState(false);
   const [frontView, setFrontView] = useState(false);
   const [volume, setVolume] = useState(50);
@@ -27,8 +30,24 @@ export default function TelevisionPortfolio() {
   const tuning = useTelevisionStartup(modelReady);
   const { phase, powered, transitioning, togglePower } = useTelevisionPower();
   const channelsEnabled = modelReady && !tuning && phase === "on";
-  const { channel, switching, changeChannel } = useTelevisionChannels(channelsEnabled);
-  const changeChannelWithSound = useTelevisionChannelSound(channelsEnabled, volume, changeChannel);
+  const { channel, switching, changeChannel, enterFnaf } = useTelevisionChannels(channelsEnabled);
+  const requestChannel = useCallback((request: TVTuneRequest) => {
+    if (request === "fnaf") enterFnaf();
+    else changeChannel(request);
+  }, [changeChannel, enterFnaf]);
+  const changeChannelWithSound = useTelevisionChannelSound(channelsEnabled, volume, requestChannel);
+  const selectFreddy = useCallback(() => {
+    if (!channelsEnabled || switching || channel === 2) return;
+    const audio = freddyAudio.current ??= new Audio("/sfx/freddyBoop.mp3");
+    audio.volume = volume / 100;
+    audio.currentTime = 0;
+    void audio.play().catch(() => {});
+    freddyBoops.current += 1;
+    if (freddyBoops.current === 3) {
+      freddyBoops.current = 0;
+      changeChannelWithSound("fnaf");
+    }
+  }, [channelsEnabled, switching, channel, volume, changeChannelWithSound]);
   const retuning = tuning || switching || phase === "turning-on";
   const screenPaused = retuning || phase !== "on";
   const { strength, disturb } = useAntennaInterference(screenPaused);
@@ -39,7 +58,8 @@ export default function TelevisionPortfolio() {
       <div className="television-stage" id="television-stage">
         <TelevisionModel displayRef={displayRef} onReady={onModelReady} onInterference={disturb} frontView={frontView}
           volume={volume} powered={powered} powerBusy={transitioning} controlsDisabled={!modelReady || tuning}
-          onToggleView={toggleView} onTogglePower={togglePower} onVolumeChange={changeVolume} onChannelChange={changeChannelWithSound} />
+          onToggleView={toggleView} onTogglePower={togglePower} onVolumeChange={changeVolume} onChannelChange={changeChannelWithSound}
+          onSelectFnaf={selectFreddy} fnafAvailable={channelsEnabled && channel !== 2} />
         <div ref={displayRef} className="tv-glass">
           <div className="tv-broadcast" aria-hidden={retuning || phase !== "on"}>
             <div className="tv-picture" inert={retuning || phase !== "on"}>

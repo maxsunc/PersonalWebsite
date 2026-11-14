@@ -91,8 +91,22 @@ export function createNightSky() {
 
 /** Optional environment; load failure must not prevent the TV from working. */
 export async function createCampsite(scene: THREE.Scene) {
-  const { scene: model } = await new GLTFLoader().loadAsync("/models/campsite.glb");
+  const loader = new GLTFLoader();
+  const [{ scene: model }, freddyAsset] = await Promise.all([
+    loader.loadAsync("/models/campsite.glb"),
+    loader.loadAsync("/models/freddy-doll.glb").catch(error => {
+      console.warn("Freddy doll unavailable; keeping the campsite.", error);
+      return undefined;
+    }),
+  ]);
   const root = new THREE.Group(); root.name = "NightCampsite"; root.add(model); scene.add(root);
+  const freddy = freddyAsset?.scene;
+  if (freddy) {
+    freddy.name = "FreddyDoll"; freddy.position.set(-4, -8, -15); freddy.rotation.y = Math.PI + .2;
+    freddy.scale.setScalar(.5);
+    freddy.traverse(object => { const mesh = object as THREE.Mesh; if (mesh.isMesh) { mesh.castShadow = true; mesh.receiveShadow = true; } });
+    root.add(freddy);
+  }
   const sky = createNightSky(); scene.add(sky.object);
   const originalFog = scene.fog;
   scene.fog = new THREE.FogExp2(0x070e1d, .0025);
@@ -201,7 +215,19 @@ export async function createCampsite(scene: THREE.Scene) {
   const geometry = new THREE.BufferGeometry(); geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
   const sparks = new THREE.Points(geometry, new THREE.PointsMaterial({ color: 0xffab4a, size: 1.8, sizeAttenuation: false, transparent: true, opacity: .8, depthWrite: false, blending: THREE.AdditiveBlending }));
   sparks.name = "CampfireSparks"; sparks.layers.set(1); root.add(sparks);
+  const raycaster = new THREE.Raycaster(); raycaster.layers.enable(1);
   return {
+    pickFreddy(camera: THREE.OrthographicCamera, pointer: THREE.Vector2) {
+      if (!freddy) return false;
+      scene.updateMatrixWorld(true);
+      raycaster.setFromCamera(pointer, camera);
+      let object: THREE.Object3D | null = raycaster.intersectObjects(scene.children, true).find(hit => (hit.object as THREE.Mesh).isMesh)?.object ?? null;
+      while (object) {
+        if (object === freddy) return true;
+        object = object.parent;
+      }
+      return false;
+    },
     invalidateShadows() { fire.shadow.needsUpdate = true; },
     setPowered(powered: boolean) { screenLights.forEach(light => { light.visible = powered; }); },
     setHeight,
