@@ -138,32 +138,15 @@ export async function createCampsite(scene: THREE.Scene) {
   screenLight.position.set(TV_SCREEN.x, TV_SCREEN.y, TV_SCREEN.z + .12);
   screenLight.rotation.y = Math.PI; // RectAreaLight emits along local -Z; the screen faces +Z.
   root.add(screenLight);
-  // The main emitter faces outwards, so it cannot illuminate the recessed rim
-  // behind its plane. Thin, low-flux emitters tip back towards each bezel edge,
-  // giving a continuous soft spill rather than a neon outline or point hotspots.
-  const edgeLights = [
-    { name: "top", x: TV_SCREEN.x, y: TV_SCREEN.y + TV_SCREEN.height / 2 - .08, width: TV_SCREEN.width, height: .12, dx: 0, dy: 1 },
-    { name: "bottom", x: TV_SCREEN.x, y: TV_SCREEN.y - TV_SCREEN.height / 2 + .08, width: TV_SCREEN.width, height: .12, dx: 0, dy: -1 },
-    { name: "left", x: TV_SCREEN.x - TV_SCREEN.width / 2 + .08, y: TV_SCREEN.y, width: .12, height: TV_SCREEN.height, dx: -1, dy: 0 },
-    { name: "right", x: TV_SCREEN.x + TV_SCREEN.width / 2 - .08, y: TV_SCREEN.y, width: .12, height: TV_SCREEN.height, dx: 1, dy: 0 },
-  ].map(edge => {
-    const light = new THREE.RectAreaLight(phosphorColor, 3, edge.width, edge.height);
-    light.name = `TVScreenSpill_${edge.name}`;
-    light.position.set(edge.x, edge.y, TV_SCREEN.z + .20);
-    light.lookAt(edge.x + edge.dx * .5, edge.y + edge.dy * .5, TV_SCREEN.z - .3);
-    root.add(light);
-    return light;
-  });
-  const screenLights = [screenLight, ...edgeLights];
-  const screenLightHeights = screenLights.map(light => light.height);
+  // Bezel spill is baked into the TV materials, not four more scene-wide area lights.
   const setHeight = (height: number) => {
     // Area-light dimensions are independent of Object3D scaling in Three.js.
-    screenLights.forEach((light, i) => { light.height = screenLightHeights[i] * height; });
+    screenLight.height = TV_SCREEN.height * height;
     if (root.scale.y !== height) { root.scale.y = height; fire.shadow.needsUpdate = true; }
   };
   // Both the TV (layer 0) and landscape (layer 1) receive the real lighting.
   root.traverse(object => object.layers.set(1));
-  for (const light of [ambient, moon, fire, lantern, ...screenLights]) light.layers.enable(0);
+  for (const light of [ambient, moon, fire, lantern, screenLight]) light.layers.enable(0);
   fire.shadow.camera.layers.enable(1);
   // An orthographic camera has parallel rays: an endless plane would cover
   // the entire sky. Fade only the far half of the field to a camera-relative
@@ -229,7 +212,7 @@ export async function createCampsite(scene: THREE.Scene) {
       return false;
     },
     invalidateShadows() { fire.shadow.needsUpdate = true; },
-    setPowered(powered: boolean) { screenLights.forEach(light => { light.visible = powered; }); },
+    setPowered(powered: boolean) { screenLight.visible = powered; },
     setHeight,
     syncCamera(camera: THREE.OrthographicCamera) {
       sky.syncCamera(camera);

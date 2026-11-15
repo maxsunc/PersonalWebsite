@@ -65,6 +65,7 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
     let disposeRoom = () => {};
     const originalPositions = new Map<Object3D, number>();
     const buttonMaterials = new Map<Object3D, { material: MeshStandardMaterial; color: Color }[]>();
+    const bezelMaterials = new Set<MeshStandardMaterial>();
     const releaseModel = (root: Object3D) => {
       root.traverse((object) => {
         const mesh = object as Mesh;
@@ -164,6 +165,7 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
         camera.lookAt(0, targetY, 0);
         camera.updateMatrixWorld();
         if (model) {
+          for (const material of bezelMaterials) material.emissiveIntensity = settingsRef.current.powered ? .12 : 0;
           const thumb = model.getObjectByName("VolumeThumb");
           if (thumb) thumb.position.x = televisionVolumePosition(settingsRef.current.volume);
           const led = model.getObjectByName("StandbyLED");
@@ -407,9 +409,38 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
         if (disposed) { releaseModel(gltf.scene); return; }
         model = gltf.scene;
         scene.add(model);
+        model.updateMatrixWorld(true);
         model.traverse((object) => {
           const surface = object as Mesh;
           if (surface.isMesh) { surface.castShadow = true; surface.receiveShadow = true; }
+          if (surface.isMesh && (object.name === "ScreenMetalRim" || object.name === "ScreenRubberSeal")) {
+            // Bake soft spill once in cabinet-local space; resizing and orbiting need no rebake.
+            const positions = surface.geometry.getAttribute("position");
+            const spill = new Float32Array(positions.count);
+            const point = new THREE.Vector3();
+            for (let i = 0; i < positions.count; i++) {
+              gltf.scene.worldToLocal(surface.localToWorld(point.fromBufferAttribute(positions, i)));
+              const dx = Math.max(0, Math.abs(point.x - TV_SCREEN.x) - TV_SCREEN.width / 2);
+              const dy = Math.max(0, Math.abs(point.y - TV_SCREEN.y) - TV_SCREEN.height / 2);
+              const depth = Math.max(0, TV_SCREEN.z - .1 - point.z);
+              spill[i] = Math.exp(-(dx * dx + dy * dy) / .08 - depth * 8);
+            }
+            surface.geometry.setAttribute("crtSpill", new THREE.BufferAttribute(spill, 1));
+            const materials = (Array.isArray(surface.material) ? surface.material : [surface.material]).map(material => {
+              const baked = material.clone() as MeshStandardMaterial;
+              baked.emissive.set(0xc3deb0);
+              baked.onBeforeCompile = shader => {
+                shader.vertexShader = shader.vertexShader.replace("#include <common>", "#include <common>\nattribute float crtSpill;\nvarying float vCrtSpill;")
+                  .replace("#include <begin_vertex>", "#include <begin_vertex>\nvCrtSpill = crtSpill;");
+                shader.fragmentShader = shader.fragmentShader.replace("#include <common>", "#include <common>\nvarying float vCrtSpill;")
+                  .replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\ntotalEmissiveRadiance *= vCrtSpill;");
+              };
+              baked.customProgramCacheKey = () => "crt-baked-spill-v1";
+              bezelMaterials.add(baked);
+              return baked;
+            });
+            surface.material = materials.length === 1 ? materials[0] : materials;
+          }
           originalPositions.set(object, object.position.z);
           if (!object.name.startsWith("Button_") && object.name !== "StandbyLED") return;
           const mesh = object as Mesh;
