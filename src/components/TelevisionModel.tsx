@@ -190,6 +190,8 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
         roomEnvironment?.syncCamera(camera);
         const screenVisible = isTVScreenVisible(pose.yaw, pose.pitch);
         display.style.visibility = screenVisible ? "visible" : "hidden";
+        // Descendant tuning/power effects can override inherited visibility, not parent opacity.
+        display.style.opacity = screenVisible ? "1" : "0";
         display.inert = !screenVisible;
         const inputs = host.querySelector<HTMLElement>(".cabinet-inputs");
         if (inputs) { inputs.style.visibility = screenVisible ? "visible" : "hidden"; inputs.inert = !screenVisible; }
@@ -521,7 +523,7 @@ export default function TelevisionModel({ displayRef, onReady, onInterference, f
       if (model) releaseModel(model);
       renderer?.dispose(); renderer?.domElement.remove();
       display.style.removeProperty("transform"); display.style.removeProperty("width"); display.style.removeProperty("height");
-      display.style.removeProperty("visibility"); display.inert = false;
+      display.style.removeProperty("visibility"); display.style.removeProperty("opacity"); display.inert = false;
     };
   }, [displayRef, onReady]);
 

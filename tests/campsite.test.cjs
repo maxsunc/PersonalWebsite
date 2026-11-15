@@ -59,7 +59,9 @@ test('stars use tiny pixel-capped Gaussian profiles, a faint second population a
   assert.match(shader, /pow\(hash\(cell \+ 41\.9\), 7\.0\)/, 'most stars are faint and small, not uniformly bright');
   assert.match(shader, /vec3 temperature = mix/);
   assert.match(shader, /vec2\(2200\.,1100\.\)/);
-  assert.match(shader, /vec2\(6500\.,3250\.\), \.50, \.18/);
+  assert.match(shader, /vec2\(2200\.,1100\.\), \.23, 1\.0/);
+  assert.match(shader, /vec2\(6500\.,3250\.\), \.35, \.18/);
+  assert.match(shader, /color \+= star;/, "stars cover the whole sphere without an elevation mask");
   assert.doesNotMatch(shader, /uniform\s+float\s+time/);
   sky.dispose();
 });

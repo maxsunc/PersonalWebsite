@@ -64,9 +64,9 @@ export function createNightSky() {
         float band = exp(-pow((dir.y + dir.x*.28 - .36 + (dust-.5)*.12)*7.0, 2.0));
         color += vec3(.0025,.0028,.0035) * band * dust;
         // A sparse, brighter population over many fine, faint background stars.
-        vec3 star = stars(uv, vec2(2200.,1100.), .33, 1.0)
-                  + stars(uv + vec2(.137,.291), vec2(6500.,3250.), .50, .18);
-        color += star * smoothstep(-.45,-.08,dir.y);
+        vec3 star = stars(uv, vec2(2200.,1100.), .23, 1.0)
+                  + stars(uv + vec2(.137,.291), vec2(6500.,3250.), .35, .18);
+        color += star;
         gl_FragColor = vec4(color, 1.0);
         #include <colorspace_fragment>
       }`,

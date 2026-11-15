@@ -244,6 +244,25 @@ test("native pointer handlers really orbit to the back, hold on release, and ign
   assert.equal(model.documentListeners.size, 0);
 });
 
+test("rear screen stays transparent across power changes and tuning rerenders", async () => {
+  const model = await mountModel();
+  model.down(100, 100); model.move(500, 100); model.up();
+  for (const powered of [false, true, true]) {
+    model.settings({ powered });
+    assert.equal(model.display.style.visibility, "hidden");
+    assert.equal(model.display.style.opacity, "0", "parent opacity hides even explicitly visible tuning/power descendants");
+    assert.equal(model.display.inert, true);
+  }
+  model.front(true);
+  model.finish();
+  assert.equal(model.display.style.opacity, "1");
+  model.front(false);
+  model.finish();
+  assert.equal(model.display.style.opacity, "0");
+  model.cleanup();
+  assert.equal(model.display.style.opacity, undefined);
+});
+
 test("side-view dragging keeps the screen visible and interactive until actually behind it", async () => {
   const model = await mountModel();
   for (const degrees of [80, 85, 89.99, 90, 91, 89, -85, -90, -91, -89]) {
