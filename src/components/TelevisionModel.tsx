@@ -29,7 +29,7 @@ type Props = {
 type AntennaDrag = { id: TVAntenna; x: number; y: number; time: number };
 
 export default function TelevisionModel({ displayRef, onReady, onInterference, frontView,
-  volume = 50, powered = true, powerBusy = false, controlsDisabled = false,
+  volume, powered = true, powerBusy = false, controlsDisabled = false,
   onToggleView, onTogglePower, onVolumeChange, onChannelChange, onSelectFnaf, fnafAvailable = false }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
   const pressRef = useRef<(id: TVControl, pressed: boolean) => void>(() => {});

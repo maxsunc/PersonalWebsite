@@ -50,7 +50,7 @@ function walk(node, predicate) {
   if (!node || typeof node !== "object") return [];
   return [...(predicate(node) ? [node] : []), ...[node.props?.children].flat(Infinity).flatMap((child) => walk(child, predicate))];
 }
-function renderPortfolio({ ready = false, tuning = false, front = false, volume = 50, phase = "on", channel = 0, switching = false, onChannel = () => {}, onChannelEnabled = () => {}, onToggle = () => {}, onVolume = () => {}, onPower = () => {} } = {}) {
+function renderPortfolio({ ready = false, tuning = false, front = false, volume, phase = "on", channel = 0, switching = false, onChannel = () => {}, onChannelEnabled = () => {}, onToggle = () => {}, onVolume = () => {}, onPower = () => {} } = {}) {
   const exports = {};
   let stateIndex = 0;
   const jsx = (type, props) => ({ type, props });
@@ -58,7 +58,7 @@ function renderPortfolio({ ready = false, tuning = false, front = false, volume 
     exports,
     require(name) {
       if (name === "react") return {
-        useState: () => { const index = stateIndex++; return [index === 0 ? ready : index === 1 ? front : volume, (value) => { if (index === 1) onToggle(typeof value === "function" ? value(front) : value); if (index === 2) onVolume(value); }]; },
+        useState: (initial) => { const index = stateIndex++; return [index === 0 ? ready : index === 1 ? front : volume ?? initial, (value) => { if (index === 1) onToggle(typeof value === "function" ? value(front) : value); if (index === 2) onVolume(value); }]; },
         useRef: (current) => ({ current }), useCallback: (fn) => fn, useEffect: () => {},
       };
       if (name === "react/jsx-runtime") return { jsx, jsxs: jsx };
@@ -154,7 +154,7 @@ test("physical controls are wired to view, volume, and power state", () => {
   const tree = renderPortfolio({ ready: true, onToggle: (value) => { toggled = value; }, onVolume: (value) => { volume = value; }, onPower: () => { power++; } });
   const model = walk(tree, (node) => node.type === "TelevisionModel")[0].props;
   assert.equal(model.controlsDisabled, false);
-  assert.equal(model.volume, 50);
+  assert.equal(model.volume, 20);
   model.onToggleView(); assert.equal(toggled, true);
   model.onVolumeChange(82); assert.equal(volume, 82);
   model.onVolumeChange(300); assert.equal(volume, 100);

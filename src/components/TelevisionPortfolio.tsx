@@ -23,7 +23,7 @@ export default function TelevisionPortfolio() {
   useEffect(() => () => { freddyAudio.current?.pause(); }, []);
   const [modelReady, setModelReady] = useState(false);
   const [frontView, setFrontView] = useState(false);
-  const [volume, setVolume] = useState(50);
+  const [volume, setVolume] = useState(20);
   const onModelReady = useCallback(() => setModelReady(true), []);
   const toggleView = useCallback(() => setFrontView((current) => !current), []);
   const changeVolume = useCallback((value: number) => setVolume(clampTVVolume(value)), []);
